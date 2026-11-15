@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' https: data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4f4f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)">
+<title>Minimalistic Radio</title>
+<meta name="description" content="Open it in Minimalistic Radio, a tiny free radio for Windows, macOS and Linux.">
+<!-- Chat apps never see the part after #, so the preview is the same for every shared station. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Minimalistic Radio">
+<meta property="og:title" content="A radio station for you">
+<meta property="og:description" content="Open it in Minimalistic Radio, a tiny free radio for Windows, macOS and Linux.">
+<meta property="og:image" content="https://minimalistic-radio.github.io/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="The Minimalistic Radio icon">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="A radio station for you">
+<meta name="twitter:description" content="Open it in Minimalistic Radio, a tiny free radio for Windows, macOS and Linux.">
+<meta name="twitter:image" content="https://minimalistic-radio.github.io/og.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="og.png">
+<style>
+:root {
+  --page: #f4f4f5;
+  --text: #18181b;
+  --sub: #5f5f66;
+  --card: #ffffff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --primary: #18181b;
+  --primary-hover: #2e2e33;
+  --on-primary: #ffffff;
+  --line: #d4d4d8;
+  --hover: #f4f4f5;
+  --tile: #f4f4f5;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #111113;
+    --text: #f4f4f5;
+    --sub: #a1a1aa;
+    --card: #1c1c1f;
+    --shadow: 0 0 0 1px #2a2a2e;
+    --primary: #f4f4f5;
+    --primary-hover: #ffffff;
+    --on-primary: #111113;
+    --line: #3a3a40;
+    --hover: #26262a;
+    --tile: #2a2a2e;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--page);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, Roboto, "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+main { padding: 48px 24px; display: flex; flex-direction: column; align-items: center; }
+.column { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 20px; }
+
+.brand { display: flex; align-items: center; gap: 10px; font-size: 15px; line-height: 24px; font-weight: 600; }
+.brand svg { flex-shrink: 0; }
+.brand .disc { fill: var(--primary); }
+.brand .bars { fill: var(--on-primary); }
+
+.card {
+  padding: 36px 32px 28px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.logo {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.logo.empty { background: var(--tile); color: var(--sub); }
+.logo:not(.empty) .glyph { display: none; }
+.kicker { margin-top: 20px; font-size: 14px; line-height: 20px; color: var(--sub); }
+h1 {
+  margin: 4px 0 0;
+  max-width: 100%;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.actions { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.primary {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.primary svg { flex-shrink: 0; }
+#open { margin-top: 28px; }
+#copy { margin-top: 20px; }
+#copy .check, #copy.copied .link { display: none; }
+#copy.copied .check { display: block; }
+.note { font-size: 13px; line-height: 18px; color: var(--sub); }
+.card .note { margin-top: 12px; }
+.phone-text { margin: 24px 0 0; font-size: 15px; line-height: 22px; }
+
+.get { padding: 4px 8px 0; display: flex; flex-direction: column; gap: 8px; }
+.get.solo { padding: 0; }
+h2 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; }
+.get p { margin: 0; font-size: 14px; line-height: 21px; color: var(--sub); }
+.get.solo p { font-size: 15px; line-height: 22px; }
+.secondary {
+  margin-top: 6px;
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 9px 16px 9px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.secondary svg { flex-shrink: 0; }
+
+/* Touch screens keep :hover after a tap, so only pointers that can hover get it. */
+@media (hover: hover) {
+  .primary:hover { background: var(--primary-hover); }
+  .secondary:hover { background: var(--hover); }
+}
+a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 600px) {
+  main { padding: 24px 20px; }
+}
+@media (max-width: 360px) {
+  .card { padding: 32px 20px 24px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="column">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><circle class="disc" cx="16" cy="16" r="15.5"/><g class="bars"><rect x="7" y="12" width="3" height="8" rx="1.5"/><rect x="12" y="8" width="3" height="16" rx="1.5"/><rect x="17" y="6" width="3" height="20" rx="1.5"/><rect x="22" y="10" width="3" height="12" rx="1.5"/></g></svg>
+      <span>Minimalistic Radio</span>
+    </div>
+
+    <section class="card" id="station" hidden>
+      <div class="logo empty" id="logo">
+        <svg class="glyph" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 L3 6 A2 2 0 0 1 5 4 H19 A2 2 0 0 1 21 6 V18 A2 2 0 0 1 19 20 H5 A2 2 0 0 1 3 18 Z M3 10 H21 M7 15 H7.01 M11 15 H17"/></svg>
+      </div>
+      <span class="kicker" data-text="kicker">A radio station for you</span>
+      <h1 id="name"></h1>
+
+      <div class="actions" id="desktop">
+        <a class="primary" id="open" href="#"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v18l16-9z" fill="currentColor"/></svg><span data-text="open">Open in Minimalistic Radio</span></a>
+        <span class="note" data-text="asks">The radio asks before it adds anything.</span>
+      </div>
+
+      <div class="actions" id="phone" hidden>
+        <p class="phone-text" data-text="phone">Minimalistic Radio runs on a computer. Open this link on Windows, macOS or Linux to add the station.</p>
+        <button class="primary" id="copy" type="button"><svg class="link" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7 M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 L9 17 L4 12"/></svg><span id="copy-label" data-text="copy">Copy link</span></button>
+      </div>
+    </section>
+
+    <section class="get solo" id="get">
+      <h2 id="get-title" data-text="get" hidden>Don't have Minimalistic Radio yet?</h2>
+      <p data-text="about">A tiny, free radio for Windows, macOS and Linux. It sits next to the clock and plays the stations you add.</p>
+      <a class="secondary" href="https://github.com/zal3wa/minimalistic-radio"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"/></svg><span data-text="download">Download from GitHub</span></a>
+      <span class="note" id="after" hidden></span>
+    </section>
+  </div>
+</main>
+<p class="visually-hidden" id="status" role="status" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+
+  // The page behind a shared station: https://minimalistic-radio.github.io/#n=<name>&u=<stream>&l=<logo>
+  // (a form-encoded query after the #, so it never reaches a server). The checks below are the same as in the apps.
+  var APP_LINK = 'minimalistic-radio://add?';
+  var MAX_ADDRESS = 2048;
+  var MAX_NAME = 100;
+
+  var TEXTS = {
+    en: {
+      kicker: 'A radio station for you',
+      open: 'Open in Minimalistic Radio',
+      asks: 'The radio asks before it adds anything.',
+      phone: 'Minimalistic Radio runs on a computer. Open this link on Windows, macOS or Linux to add the station.',
+      copy: 'Copy link',
+      copied: 'Link copied',
+      get: "Don't have Minimalistic Radio yet?",
+      about: 'A tiny, free radio for Windows, macOS and Linux. It sits next to the clock and plays the stations you add.',
+      download: 'Download from GitHub',
+      after: 'After installing, open this link again.',
+      afterPhone: 'Install it on your computer, then open this link there.',
+      logo: '{0} logo'
+    },
+    cs: {
+      kicker: 'Rádiová stanice pro vás',
+      open: 'Otevřít v Minimalistic Radio',
+      asks: 'Rádio se zeptá, než cokoli přidá.',
+      phone: 'Minimalistic Radio běží na počítači. Pokud chcete stanici přidat, otevřete tento odkaz ve Windows, macOS nebo Linuxu.',
+      copy: 'Kopírovat odkaz',
+      copied: 'Odkaz zkopírován',
+      get: 'Ještě nemáte Minimalistic Radio?',
+      about: 'Malé bezplatné rádio pro Windows, macOS a Linux. Najdete ho u hodin a hraje stanice, které si přidáte.',
+      download: 'Stáhnout z GitHubu',
+      after: 'Po instalaci otevřete tento odkaz znovu.',
+      afterPhone: 'Nainstalujte si rádio do počítače a tento odkaz otevřete tam.',
+      logo: 'Logo stanice {0}'
+    },
+    de: {
+      kicker: 'Ein Radiosender für Sie',
+      open: 'In Minimalistic Radio öffnen',
+      asks: 'Das Radio fragt, bevor es etwas hinzufügt.',
+      phone: 'Minimalistic Radio läuft auf dem Computer. Öffnen Sie diesen Link unter Windows, macOS oder Linux, um den Sender hinzuzufügen.',
+      copy: 'Link kopieren',
+      copied: 'Link kopiert',
+      get: 'Noch kein Minimalistic Radio?',
+      about: 'Ein kleines, kostenloses Radio für Windows, macOS und Linux. Es sitzt neben der Uhr und spielt die Sender, die Sie hinzufügen.',
+      download: 'Von GitHub herunterladen',
+      after: 'Öffnen Sie diesen Link nach der Installation erneut.',
+      afterPhone: 'Installieren Sie es auf Ihrem Computer und öffnen Sie diesen Link dann dort.',
+      logo: 'Logo von {0}'
+    },
+    es: {
+      kicker: 'Una emisora para ti',
+      open: 'Abrir en Minimalistic Radio',
+      asks: 'La radio pregunta antes de añadir nada.',
+      phone: 'Minimalistic Radio funciona en el ordenador. Abre este enlace en Windows, macOS o Linux para añadir la emisora.',
+      copy: 'Copiar enlace',
+      copied: 'Enlace copiado',
+      get: '¿Aún no tienes Minimalistic Radio?',
+      about: 'Una radio pequeña y gratuita para Windows, macOS y Linux. Vive junto al reloj y pone las emisoras que añadas.',
+      download: 'Descargar de GitHub',
+      after: 'Después de instalarla, vuelve a abrir este enlace.',
+      afterPhone: 'Instálala en tu ordenador y abre allí este enlace.',
+      logo: 'Logotipo de {0}'
+    },
+    fr: {
+      kicker: 'Une station de radio pour vous',
+      open: 'Ouvrir dans Minimalistic Radio',
+      asks: "La radio demande toujours avant d'ajouter quoi que ce soit.",
+      phone: 'Minimalistic Radio fonctionne sur ordinateur. Ouvrez ce lien sous Windows, macOS ou Linux pour ajouter la station.',
+      copy: 'Copier le lien',
+      copied: 'Lien copié',
+      get: "Vous n'avez pas encore Minimalistic Radio ?",
+      about: "Une petite radio gratuite pour Windows, macOS et Linux. Elle se loge près de l'horloge et joue les stations que vous ajoutez.",
+      download: 'Télécharger sur GitHub',
+      after: "Après l'installation, rouvrez ce lien.",
+      afterPhone: 'Installez-la sur votre ordinateur, puis ouvrez-y ce lien.',
+      logo: 'Logo de {0}'
+    },
+    it: {
+      kicker: 'Una stazione radio per te',
+      open: 'Apri in Minimalistic Radio',
+      asks: 'La radio chiede sempre prima di aggiungere qualcosa.',
+      phone: 'Minimalistic Radio funziona sul computer. Apri questo link su Windows, macOS o Linux per aggiungere la stazione.',
+      copy: 'Copia link',
+      copied: 'Link copiato',
+      get: 'Non hai ancora Minimalistic Radio?',
+      about: "Una piccola radio gratuita per Windows, macOS e Linux. Sta accanto all'orologio e suona le stazioni che aggiungi.",
+      download: 'Scarica da GitHub',
+      after: "Dopo l'installazione, riapri questo link.",
+      afterPhone: 'Installala sul computer, poi apri lì questo link.',
+      logo: 'Logo di {0}'
+    },
+    pl: {
+      kicker: 'Stacja radiowa dla Ciebie',
+      open: 'Otwórz w Minimalistic Radio',
+      asks: 'Radio zapyta, zanim cokolwiek doda.',
+      phone: 'Minimalistic Radio działa na komputerze. Otwórz ten link w systemie Windows, macOS lub Linux, aby dodać stację.',
+      copy: 'Kopiuj link',
+      copied: 'Skopiowano link',
+      get: 'Nie masz jeszcze Minimalistic Radio?',
+      about: 'Małe, darmowe radio na Windows, macOS i Linuksa. Siedzi obok zegara i gra stacje, które dodasz.',
+      download: 'Pobierz z GitHuba',
+      after: 'Po instalacji otwórz ten link ponownie.',
+      afterPhone: 'Zainstaluj je na komputerze i tam otwórz ten link.',
+      logo: 'Logo stacji {0}'
+    },
+    pt: {
+      kicker: 'Uma estação de rádio para si',
+      open: 'Abrir no Minimalistic Radio',
+      asks: 'O rádio pergunta sempre antes de adicionar alguma coisa.',
+      phone: 'O Minimalistic Radio funciona num computador. Abra esta ligação no Windows, macOS ou Linux para adicionar a estação.',
+      copy: 'Copiar ligação',
+      copied: 'Ligação copiada',
+      get: 'Ainda não tem o Minimalistic Radio?',
+      about: 'Um pequeno rádio gratuito para Windows, macOS e Linux. Fica junto ao relógio e toca as estações que adicionar.',
+      download: 'Transferir do GitHub',
+      after: 'Depois de instalar, abra novamente esta ligação.',
+      afterPhone: 'Instale-o no seu computador e depois abra lá esta ligação.',
+      logo: 'Logótipo de {0}'
+    },
+    uk: {
+      kicker: 'Радіостанція для вас',
+      open: 'Відкрити в Minimalistic Radio',
+      asks: 'Радіо запитає, перш ніж щось додати.',
+      phone: 'Minimalistic Radio працює на комп’ютері. Відкрийте це посилання у Windows, macOS або Linux, щоб додати станцію.',
+      copy: 'Копіювати посилання',
+      copied: 'Посилання скопійовано',
+      get: 'Ще не маєте Minimalistic Radio?',
+      about: 'Маленьке безкоштовне радіо для Windows, macOS і Linux. Живе біля годинника й грає станції, які ви додасте.',
+      download: 'Завантажити з GitHub',
+      after: 'Після встановлення відкрийте це посилання ще раз.',
+      afterPhone: 'Встановіть його на комп’ютер, а потім відкрийте там це посилання.',
+      logo: 'Логотип {0}'
+    }
+  };
+
+  // The first of the browser's languages the page has, by primary subtag; otherwise English.
+  function pickLanguage() {
+    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+    for (var i = 0; i < list.length; i++) {
+      var primary = String(list[i] || '').toLowerCase().split('-')[0];
+      if (Object.prototype.hasOwnProperty.call(TEXTS, primary)) return primary;
+    }
+    return 'en';
+  }
+
+  // Phones and tablets can't run the radio. Android tablets report mobile: false, so their platform counts too;
+  // iPadOS Safari calls itself a Mac and is told apart by its touch screen.
+  function isPhone() {
+    var data = navigator.userAgentData;
+    if (data && typeof data.mobile === 'boolean') return data.mobile || /^(android|ios)$/i.test(data.platform || '');
+    var agent = navigator.userAgent || '';
+    return /Android|iPhone|iPad|iPod|Mobile|Tablet|Silk|Kindle|BlackBerry|BB10|IEMobile|Opera Mini|webOS/i.test(agent) ||
+      (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1);
+  }
+
+  var CONTROL = /[\u0000-\u001F\u007F-\u009F]/g;
+
+  // An absolute address with one of the schemes, at most 2048 characters; otherwise null.
+  function webAddress(value, schemes) {
+    if (typeof value !== 'string') return null;
+    var address = value.trim();
+    if (!address || address.length > MAX_ADDRESS || address.search(CONTROL) >= 0) return null;
+    var scheme = /^([a-z][a-z0-9+.-]*):\/\//i.exec(address);
+    if (!scheme || schemes.indexOf(scheme[1].toLowerCase()) < 0) return null;
+    try {
+      if (!new URL(address).hostname) return null;
+    } catch (e) {
+      return null;
+    }
+    return address;
+  }
+
+  // Control characters removed, trimmed, cut to 100 characters; empty means no name.
+  function stationName(value) {
+    if (typeof value !== 'string') return null;
+    var name = value.replace(CONTROL, '').trim();
+    var characters = Array.from(name);
+    if (characters.length > MAX_NAME) name = characters.slice(0, MAX_NAME).join('').trim();
+    return name || null;
+  }
+
+  function parseStation(query) {
+    var params = new URLSearchParams(query);
+    var name = stationName(params.get('n'));
+    var stream = webAddress(params.get('u'), ['http', 'https']);
+    if (!name || !stream) return null;
+    return { name: name, stream: stream, logo: webAddress(params.get('l'), ['https']) };
+  }
+
+  function appLink(station) {
+    var params = new URLSearchParams();
+    params.set('n', station.name);
+    params.set('u', station.stream);
+    if (station.logo) params.set('l', station.logo);
+    return APP_LINK + params.toString();
+  }
+
+  var language = pickLanguage();
+  var text = TEXTS[language];
+  var phone = isPhone();
+
+  var stationCard = document.getElementById('station');
+  var logoBox = document.getElementById('logo');
+  var nameHeading = document.getElementById('name');
+  var openLink = document.getElementById('open');
+  var copyButton = document.getElementById('copy');
+  var copyLabel = document.getElementById('copy-label');
+  var getSection = document.getElementById('get');
+  var getTitle = document.getElementById('get-title');
+  var afterNote = document.getElementById('after');
+  var status = document.getElementById('status');
+
+  document.documentElement.lang = language;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-text]'), function (element) {
+    element.textContent = text[element.getAttribute('data-text')];
+  });
+  document.getElementById('desktop').hidden = phone;
+  document.getElementById('phone').hidden = !phone;
+  afterNote.textContent = phone ? text.afterPhone : text.after;
+
+  // The station's logo once it has loaded; the radio icon while it loads, when there is none and when it fails.
+  var logoImage = null;
+  function showLogo(address, name) {
+    if (logoImage) logoImage.remove();
+    logoImage = null;
+    logoBox.classList.add('empty');
+    if (!address) return;
+    var image = document.createElement('img');
+    image.hidden = true;
+    image.referrerPolicy = 'no-referrer';
+    image.decoding = 'async';
+    image.alt = text.logo.split('{0}').join(name);
+    image.addEventListener('load', function () {
+      if (image !== logoImage) return;
+      image.hidden = false;
+      logoBox.classList.remove('empty');
+    });
+    image.addEventListener('error', function () {
+      if (image !== logoImage) return;
+      image.remove();
+      logoImage = null;
+      logoBox.classList.add('empty');
+    });
+    logoImage = image;
+    logoBox.appendChild(image);
+    image.src = address;
+  }
+
+  var copiedTimer = 0;
+  function showCopied(copied) {
+    clearTimeout(copiedTimer);
+    copyButton.classList.toggle('copied', copied);
+    copyLabel.textContent = copied ? text.copied : text.copy;
+    status.textContent = copied ? text.copied : '';
+    if (copied) copiedTimer = setTimeout(function () { showCopied(false); }, 2000);
+  }
+
+  function copyWithSelection(value) {
+    var field = document.createElement('textarea');
+    field.value = value;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.top = '0';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
+    field.setSelectionRange(0, value.length);
+    var copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } catch (e) {
+      copied = false;
+    }
+    field.remove();
+    return copied;
+  }
+
+  copyButton.addEventListener('click', function () {
+    var address = location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(address).then(function () {
+        showCopied(true);
+      }, function () {
+        if (copyWithSelection(address)) showCopied(true);
+      });
+    } else if (copyWithSelection(address)) {
+      showCopied(true);
+    }
+  });
+
+  function render() {
+    var station = parseStation(location.hash.slice(1));
+    showCopied(false);
+    stationCard.hidden = !station;
+    getTitle.hidden = !station;
+    afterNote.hidden = !station;
+    getSection.classList.toggle('solo', !station);
+    if (!station) {
+      document.title = 'Minimalistic Radio';
+      nameHeading.textContent = '';
+      openLink.setAttribute('href', '#');
+      showLogo(null);
+      return;
+    }
+    document.title = station.name + ' – Minimalistic Radio';
+    nameHeading.textContent = station.name;
+    openLink.setAttribute('href', appLink(station));
+    showLogo(station.logo, station.name);
+  }
+
+  window.addEventListener('hashchange', render);
+  render();
+})();
+</script>
+</body>
+</html>
