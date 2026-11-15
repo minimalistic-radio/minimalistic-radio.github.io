@@ -413,7 +413,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-
     var name = stationName(params.get('n'));
     var stream = webAddress(params.get('u'), ['http', 'https']);
     if (!name || !stream) return null;
-    return { name: name, stream: stream, logo: webAddress(params.get('l'), ['https']) };
+    return { name: name, stream: stream, logo: webAddress(params.get('l'), ['http', 'https']) };
   }
 
   function appLink(station) {
@@ -448,6 +448,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-
   afterNote.textContent = phone ? text.afterPhone : text.after;
 
   // The station's logo once it has loaded; the radio icon while it loads, when there is none and when it fails.
+  // An http logo is asked for over https (the page loads nothing over http); the app link keeps it as it came.
   var logoImage = null;
   function showLogo(address, name) {
     if (logoImage) logoImage.remove();
@@ -472,7 +473,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-
     });
     logoImage = image;
     logoBox.appendChild(image);
-    image.src = address;
+    image.src = address.replace(/^http:/i, 'https:');
   }
 
   var copiedTimer = 0;
