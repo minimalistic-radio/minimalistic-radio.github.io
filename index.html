@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' https: data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' https: data:; connect-src https://api.github.com https://raw.githubusercontent.com; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f4f4f5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)">
 <title>Minimalistic Radio</title>
-<meta name="description" content="Open it in Minimalistic Radio, a tiny free radio for Windows, macOS and Linux.">
+<meta name="description" content="A tiny radio that lives next to the clock. Thousands of internet stations, free and open source for Windows, macOS and Linux.">
 <!-- Chat apps never see the part after #, so the preview is the same for every shared station. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Minimalistic Radio">
@@ -68,7 +68,8 @@ body {
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
-main { padding: 48px 24px; display: flex; flex-direction: column; align-items: center; }
+/* The share view: a shared station (#n=…&u=…). */
+.share-view { padding: 48px 24px; display: flex; flex-direction: column; align-items: center; }
 .column { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 20px; }
 
 .brand { display: flex; align-items: center; gap: 10px; font-size: 15px; line-height: 24px; font-weight: 600; }
@@ -100,7 +101,7 @@ main { padding: 48px 24px; display: flex; flex-direction: column; align-items: c
 .logo.empty { background: var(--tile); color: var(--sub); }
 .logo:not(.empty) .glyph { display: none; }
 .kicker { margin-top: 20px; font-size: 14px; line-height: 20px; color: var(--sub); }
-h1 {
+.share-view h1 {
   margin: 4px 0 0;
   max-width: 100%;
   font-size: 28px;
@@ -139,10 +140,8 @@ h1 {
 .phone-text { margin: 24px 0 0; font-size: 15px; line-height: 22px; }
 
 .get { padding: 4px 8px 0; display: flex; flex-direction: column; gap: 8px; }
-.get.solo { padding: 0; }
-h2 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; }
+.share-view h2 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; }
 .get p { margin: 0; font-size: 14px; line-height: 21px; color: var(--sub); }
-.get.solo p { font-size: 15px; line-height: 22px; }
 .secondary {
   margin-top: 6px;
   align-self: flex-start;
@@ -180,22 +179,469 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-
   border: 0;
 }
 @media (max-width: 600px) {
-  main { padding: 24px 20px; }
+  .share-view { padding: 24px 20px; }
 }
 @media (max-width: 360px) {
   .card { padding: 32px 20px 24px; }
 }
+
+/* The landing page (no station in the address). Values from the approved canvas, LandingWeb. */
+.landing {
+  --l-line: #d4d4d8;
+  --l-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 6px 20px rgba(0, 0, 0, 0.05);
+  --well: #e9e9ec;
+  --cta-line: rgba(255, 255, 255, 0.3);
+  --tb-win-bg: #f3f2f3;
+  --tb-win-fg: #1b1b1b;
+  --tb-win-hover: rgba(0, 0, 0, 0.06);
+  --tb-mac-bg: rgba(238, 238, 240, 0.96);
+  --tb-mac-fg: #000000;
+  --tb-mac-hover: rgba(0, 0, 0, 0.1);
+  --side: 32px;
+  --h1: 56px;
+  --h2: 40px;
+  --h3: 30px;
+  --lead: 19px;
+  --travel: -120px;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+@media (prefers-color-scheme: dark) {
+  .landing {
+    --l-line: #2e2e33;
+    --l-shadow: 0 0 0 1px #2a2a2e;
+    --well: #1a1a1d;
+    --cta-line: rgba(0, 0, 0, 0.25);
+    --tb-win-bg: #1c1c1e;
+    --tb-win-fg: #ffffff;
+    --tb-win-hover: rgba(255, 255, 255, 0.08);
+    --tb-mac-bg: rgba(38, 38, 40, 0.96);
+    --tb-mac-fg: #ffffff;
+    --tb-mac-hover: rgba(255, 255, 255, 0.2);
+  }
+}
+.landing a { color: inherit; }
+.l-main { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.l-wrap { width: 100%; max-width: 1184px; }
+
+.l-header { height: 72px; flex-shrink: 0; padding: 0 var(--side); display: flex; align-items: center; gap: 24px; }
+.l-brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; text-decoration: none; flex-grow: 1; }
+.l-brand svg { flex-shrink: 0; }
+.l-brand .disc { fill: var(--primary); }
+.l-brand .bars { fill: var(--on-primary); }
+.l-nav { display: flex; gap: 28px; font-size: 14px; color: var(--sub); }
+.l-nav a { text-decoration: none; }
+
+.l-hero {
+  padding: 56px 32px 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+}
+.landing[data-os="macos"] .l-hero, .landing[data-os="linux"] .l-hero { align-items: start; }
+.l-intro { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+.landing[data-os="macos"] .l-intro { padding-top: 54px; }
+.l-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px 0 6px;
+  border: 1px solid var(--l-line);
+  border-radius: 15px;
+  background: var(--card);
+  font-size: 13px;
+  text-decoration: none;
+}
+.l-pill-new { padding: 2px 8px; border-radius: 10px; background: var(--primary); color: var(--on-primary); font-size: 11px; font-weight: 600; }
+.l-hero h1 { margin: 24px 0 0; font-size: var(--h1); line-height: 1.08; font-weight: 700; letter-spacing: -0.025em; }
+.l-lead { margin: 20px 0 0; font-size: var(--lead); line-height: 1.55; color: var(--sub); max-width: 520px; }
+.l-downloads { margin-top: 32px; width: 100%; display: flex; flex-direction: row; gap: 12px; flex-wrap: wrap; }
+.l-dl {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 0 16px;
+  border: 1px solid var(--l-line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.landing .l-dl.main { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
+.l-dl svg { flex-shrink: 0; }
+.l-dl-text { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.l-dl-title { font-size: 15px; font-weight: 600; white-space: nowrap; }
+.l-dl-sub { font-size: 12px; opacity: 0.72; white-space: nowrap; }
+.l-phone-note { margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: var(--sub); }
+.l-facts { margin: 24px 0 0; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--sub); align-items: center; }
+.l-facts > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.l-facts b { color: var(--text); font-weight: 700; font-size: 14px; }
+
+/* The picture next to the text: the panel and the bar it opens from, with a pointer showing it off. */
+.l-stage { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.landing[data-os="macos"] .l-stage, .landing[data-os="linux"] .l-stage { flex-direction: column-reverse; }
+.l-demo { position: relative; flex-shrink: 0; z-index: 10; width: 432px; height: 622px; }
+.l-demo-box { position: absolute; left: 0; top: 0; width: 432px; height: 622px; transform-origin: 0 0; }
+.l-plate { position: absolute; inset: 0; border-radius: 0; box-shadow: none; }
+.landing[data-os="linux"] .l-plate { box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2); }
+.landing[data-os="macos"] .l-plate { inset: 1px; border-radius: 10px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2); }
+.l-frame { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; display: block; }
+.l-frame.f1 { z-index: 1; opacity: 1; }
+.l-frame.f2 { z-index: 2; }
+.l-frame.f3 { z-index: 3; }
+.l-frame.f4 { z-index: 4; }
+.l-frame.f5 { z-index: 5; }
+.l-frame.f6 { z-index: 6; }
+.l-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 9;
+  visibility: hidden;
+  transform-origin: 1px 1px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+  will-change: transform;
+}
+.l-cursor path { fill: #ffffff; stroke: #000000; }
+.landing[data-os="macos"] .l-cursor path, .landing[data-os="linux"] .l-cursor path { fill: #000000; stroke: #ffffff; }
+/* Fade-in only: each new frame fades in on top, and the one below goes once it is covered. */
+.l-demo.run .l-frame { animation: 20s linear infinite; }
+.l-demo.run .f1 { animation-name: mr-f1; }
+.l-demo.run .f2 { animation-name: mr-f2; }
+.l-demo.run .f3 { animation-name: mr-f3; }
+.l-demo.run .f4 { animation-name: mr-f4; }
+.l-demo.run .f5 { animation-name: mr-f5; }
+.l-demo.run .f6 { animation-name: mr-f6; }
+.l-demo.run .l-cursor { animation: mr-cursor 20s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+@keyframes mr-f1 { 0%, 19% { opacity: 1; } 19.2%, 98% { opacity: 0; } 98.2%, 100% { opacity: 1; } }
+@keyframes mr-f2 { 0%, 18% { opacity: 0; } 19%, 30% { opacity: 1; } 30.2%, 46.8% { opacity: 0; } 46.9%, 57% { opacity: 1; } 57.2%, 100% { opacity: 0; } }
+@keyframes mr-f3 { 0%, 29% { opacity: 0; } 30%, 46.9% { opacity: 1; } 47%, 100% { opacity: 0; } }
+@keyframes mr-f4 { 0%, 56% { opacity: 0; } 57%, 72% { opacity: 1; } 72.2%, 100% { opacity: 0; } }
+@keyframes mr-f5 { 0%, 71% { opacity: 0; } 72%, 78% { opacity: 1; } 78.2%, 100% { opacity: 0; } }
+@keyframes mr-f6 { 0%, 77% { opacity: 0; } 78%, 99.8% { opacity: 1; } 100% { opacity: 0; } }
+
+.l-bargroup { position: relative; z-index: 3; display: flex; flex-direction: column-reverse; align-items: center; gap: 10px; flex-shrink: 0; }
+.landing[data-os="macos"] .l-bargroup, .landing[data-os="linux"] .l-bargroup { flex-direction: column; }
+.l-barholder { position: relative; display: block; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.12)); }
+.l-bar { display: none; position: relative; box-sizing: border-box; }
+.l-bar-ext {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  width: 600px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000);
+  mask-image: linear-gradient(90deg, transparent, #000);
+}
+.l-bar-windows {
+  width: 253px;
+  height: 47px;
+  background: var(--tb-win-bg);
+  color: var(--tb-win-fg);
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  transform: translateX(60px);
+}
+.l-bar-windows .l-bar-ext { background: var(--tb-win-bg); }
+.landing[data-os="windows"] .l-bar-windows { display: block; }
+.l-bar-macos {
+  align-items: center;
+  gap: 12px;
+  width: 282px;
+  height: 30px;
+  padding: 0 12px 0 6px;
+  background: var(--tb-mac-bg);
+  color: var(--tb-mac-fg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  transform: translateX(116px);
+}
+.l-bar-macos .l-bar-ext { background: var(--tb-mac-bg); }
+.landing[data-os="macos"] .l-bar-macos { display: flex; }
+.l-bar-linux { width: 155px; height: 32px; background: #161616; color: #ffffff; transform: translateX(18px); }
+.l-bar-linux .l-bar-ext { background: #161616; }
+.landing[data-os="linux"] .l-bar-linux { display: block; }
+.l-hint { padding: 8px 14px; border-radius: 10px; background: var(--primary); color: var(--on-primary); font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+.l-features { padding: 72px 32px 48px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.l-features h2, .l-cta h2 { margin: 0; font-size: var(--h2); line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
+.l-features p { margin: 20px 0 0; font-size: var(--lead); line-height: 1.55; color: var(--sub); max-width: 640px; }
+
+/* The station strip: scrolls by itself, stops under the pointer, stands still if motion is reduced. */
+.l-strip { padding: 8px 32px 80px; margin-bottom: 40px; }
+.l-strip > p { margin: 0 0 18px; text-align: center; font-size: 14px; color: var(--sub); }
+.l-strip-window {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+.l-track { display: flex; gap: 20px; width: max-content; padding: 6px 0 4px; animation: mr-scroll 60s linear infinite; }
+.l-track:hover, .l-track:focus-within { animation-play-state: paused; }
+@keyframes mr-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.l-station { flex-shrink: 0; width: 92px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; }
+.l-station-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--l-shadow);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sub);
+}
+.l-station-logo img { width: 64px; height: 64px; object-fit: contain; display: block; }
+.l-station-name { max-width: 92px; font-size: 12px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.l-row {
+  padding: 56px 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 72px;
+  row-gap: 40px;
+  align-items: center;
+}
+.l-row-text { order: 1; display: flex; flex-direction: column; align-items: flex-start; }
+.l-row-media { order: 2; }
+.l-row.flip .l-row-text { order: 2; }
+.l-row.flip .l-row-media { order: 1; }
+.l-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sub); }
+.l-row h3 { margin: 16px 0 0; font-size: var(--h3); line-height: 1.2; font-weight: 700; letter-spacing: -0.015em; }
+.l-row-text p { margin: 20px 0 0; font-size: 16px; line-height: 1.7; color: var(--sub); max-width: 460px; }
+.l-well {
+  height: 360px;
+  margin: 24px 0;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  border-radius: 24px;
+  background-color: var(--well);
+  background-image: radial-gradient(ellipse 70% 60% at 50% 55%, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0) 70%);
+  clip-path: inset(-80px 0 0 0 round 0 0 24px 24px);
+}
+.l-shot { display: block; position: relative; margin-top: -24px; border-radius: 12px; filter: drop-shadow(0 350px 80px rgba(0, 0, 0, 0.15)); }
+@keyframes mr-par { from { transform: translateY(0); } to { transform: translateY(var(--travel)); } }
+@supports (animation-timeline: view()) {
+  .l-shot { animation: mr-par linear both; animation-timeline: view(); animation-range: cover 10% cover 90%; }
+}
+
+.l-cards { padding: 72px 32px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.l-card { padding: 32px; border-radius: 16px; background: var(--card); box-shadow: var(--l-shadow); display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.l-card h4 { margin: 4px 0 0; font-size: 16px; font-weight: 600; }
+.l-card p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--sub); }
+
+.l-cta-wrap { padding: 56px 32px; }
+.l-cta { padding: 64px 32px; border-radius: 24px; background: var(--primary); color: var(--on-primary); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.l-cta > p { margin: 12px 0 0; font-size: 16px; opacity: 0.72; }
+.l-cta-buttons { margin-top: 28px; display: flex; flex-direction: row; gap: 12px; justify-content: center; }
+.l-cta-button {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 22px;
+  border: 1px solid var(--cta-line);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--on-primary);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.landing .l-cta-button.main { border-color: var(--on-primary); background: var(--on-primary); color: var(--primary); }
+.l-cta-source { margin-top: 22px; font-size: 14px; opacity: 0.8; }
+
+.l-footer { padding: 28px var(--side) 40px; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--sub); }
+.l-footer span { flex-grow: 1; }
+.l-footer a { text-decoration: none; }
+
+/* Below 1024 px: the phone layout of the canvas, one column. */
+@media (max-width: 1023px) {
+  .landing { --side: 20px; --h1: 38px; --h2: 28px; --h3: 24px; --lead: 17px; --travel: -60px; }
+  .l-header { height: 60px; }
+  .l-nav .wide { display: none; }
+  .l-hero { padding: 24px 20px 40px; grid-template-columns: minmax(0, 1fr); }
+  .l-downloads, .l-cta-buttons { flex-direction: column; }
+  .l-features { padding: 48px 20px 48px; }
+  .l-strip { padding: 8px 0 80px; }
+  .l-row { padding: 56px 20px; grid-template-columns: minmax(0, 1fr); column-gap: 56px; }
+  .l-row .l-row-text, .l-row.flip .l-row-text { order: 0; }
+  .l-row .l-row-media, .l-row.flip .l-row-media { order: 1; }
+  .l-well { height: 320px; }
+  .l-shot { height: 400px; width: auto; }
+  .l-cards { padding: 72px 20px; grid-template-columns: minmax(0, 1fr); }
+  .l-cta-wrap { padding: 56px 20px; }
+  .l-cta { padding: 40px 20px; }
+  .l-cta-buttons { width: 100%; }
+  .l-downloads, .l-cta-buttons { max-width: 440px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l-demo.run .l-frame, .l-demo.run .l-cursor, .l-track, .l-shot { animation: none; }
+  .l-cursor { display: none; }
+}
 </style>
 </head>
 <body>
-<main>
+<div class="landing" id="top" data-os="windows">
+  <header class="l-header l-wrap">
+    <a class="l-brand" href="#top">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><circle class="disc" cx="16" cy="16" r="15.5"/><g class="bars"><rect x="7" y="12" width="3" height="8" rx="1.5"/><rect x="12" y="8" width="3" height="16" rx="1.5"/><rect x="17" y="6" width="3" height="20" rx="1.5"/><rect x="22" y="10" width="3" height="12" rx="1.5"/></g></svg>
+      Minimalistic Radio
+    </a>
+    <nav class="l-nav">
+      <a class="wide" href="#features" data-text="navFeatures">Features</a>
+      <a class="wide" href="#privacy" data-text="navPrivacy">Privacy</a>
+      <a href="https://github.com/zal3wa/minimalistic-radio">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main class="l-main">
+    <section class="l-hero l-wrap">
+      <div class="l-intro">
+        <a class="l-pill" href="#share"><span class="l-pill-new" data-text="pillNew">New</span><span data-text="pillText">Share a station with one link</span></a>
+        <h1 data-text="heroTitle">A tiny radio that lives next to the clock.</h1>
+        <p class="l-lead" data-text="heroLead">Thousands of internet stations, one click away. Free and open source for Windows, macOS and Linux, and only 260 KB on Windows.</p>
+        <div class="l-downloads">
+          <a class="l-dl main" data-os="windows" href="https://github.com/zal3wa/minimalistic-radio/releases/latest/download/Minimalistic-Radio.exe"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"/></svg><span class="l-dl-text"><span class="l-dl-title">Download for Windows</span><span class="l-dl-sub" data-text="subWindows">260 KB · Windows 10 and 11</span></span></a>
+          <a class="l-dl" data-os="macos" href="https://github.com/zal3wa/minimalistic-radio/releases/download/macos-download/Minimalistic-Radio.dmg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"/></svg><span class="l-dl-text"><span class="l-dl-title">macOS</span><span class="l-dl-sub" data-text="subMacos">Beta · macOS 13 or newer</span></span></a>
+          <a class="l-dl" data-os="linux" href="https://zal3wa.github.io/minimalistic-radio/minimalistic-radio.flatpakref"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"/></svg><span class="l-dl-text"><span class="l-dl-title">Linux</span><span class="l-dl-sub" data-text="subLinux">Beta · Flatpak, updates itself</span></span></a>
+        </div>
+        <p class="l-phone-note" id="phone-note" data-text="phoneNote" hidden>The radio runs on computers. Open this page on Windows, macOS or Linux to install it.</p>
+        <p class="l-facts"><span id="downloads-count" hidden></span><span data-text="statLicence">Free, MIT licence</span><span data-text="statPrivate">No account, no ads, no tracking</span></p>
+      </div>
+
+      <div class="l-stage" id="stage">
+        <div class="l-demo" id="demo">
+          <div class="l-demo-box" id="demo-box" role="img" aria-label="Minimalistic Radio on Windows: the player, Song history, a song's menu with Search on Spotify, and Statistics">
+            <span class="l-plate" aria-hidden="true"></span>
+            <picture><source media="(prefers-color-scheme: dark)" data-frame="stations"><img class="l-frame f1" data-frame="stations" alt="" fetchpriority="high"></picture>
+            <picture><source media="(prefers-color-scheme: dark)" data-frame="history"><img class="l-frame f2" data-frame="history" alt=""></picture>
+            <picture><source media="(prefers-color-scheme: dark)" data-frame="history-menu"><img class="l-frame f3" data-frame="history-menu" alt=""></picture>
+            <picture><source media="(prefers-color-scheme: dark)" data-frame="statistics"><img class="l-frame f4" data-frame="statistics" alt=""></picture>
+            <picture><source media="(prefers-color-scheme: dark)" data-frame="history"><img class="l-frame f5" data-frame="history" alt=""></picture>
+            <picture><source media="(prefers-color-scheme: dark)" data-frame="stations"><img class="l-frame f6" data-frame="stations" alt=""></picture>
+            <svg class="l-cursor" id="cursor" width="14" height="21" viewBox="0 0 14 21" aria-hidden="true"><path d="M1 1 V16.6 L4.9 13 L7.5 18.9 L10.2 17.7 L7.7 12 H12.9 Z" stroke-width="1.1" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="l-bargroup">
+          <span class="l-barholder">
+            <span class="l-bar l-bar-windows" role="img" data-label="barWindows" aria-label="The Windows taskbar with the radio next to the clock">
+              <span class="l-bar-ext" aria-hidden="true"></span>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 27px; top: 15px"><path d="M4 10l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span style="position: absolute; left: 50px; top: 3px; width: 32px; height: 39px; border-radius: 4px; background: var(--tb-win-hover)"></span>
+              <svg class="l-bar-icon" width="16" height="16" viewBox="0 0 32 32" aria-hidden="true" style="position: absolute; left: 58px; top: 15px"><circle cx="16" cy="16" r="15.5" fill="#000000"/><g fill="#c8c8c8"><rect x="7" y="12" width="3" height="8" rx="1.5"/><rect x="12" y="8" width="3" height="16" rx="1.5"/><rect x="17" y="6" width="3" height="20" rx="1.5"/><rect x="22" y="10" width="3" height="12" rx="1.5"/></g></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 97px; top: 15px"><path d="M1.6 6.3a9.4 9.4 0 0 1 12.8 0M3.9 8.7a6.1 6.1 0 0 1 8.2 0M6.1 11a2.9 2.9 0 0 1 3.8 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="13.1" r="1" fill="currentColor"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 119px; top: 15px"><path d="M2.5 6h2.4L8.4 3v10L4.9 10H2.5z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M10.6 5.8a3 3 0 0 1 0 4.4M12.4 4a5.6 5.6 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 142px; top: 15px"><rect x="1.5" y="5" width="11.4" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.1"/><rect x="3" y="6.5" width="8.4" height="3" rx=".6" fill="currentColor"/><path d="M14.3 7v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+              <span aria-hidden="true" style="position: absolute; right: 11px; top: 6px; text-align: right; font-size: 12px; line-height: 17px">10:25 PM<br>11/15/2026</span>
+            </span>
+            <span class="l-bar l-bar-macos" role="img" data-label="barMacos" aria-label="The macOS menu bar with the radio">
+              <span class="l-bar-ext" aria-hidden="true"></span>
+              <span class="l-bar-icon" style="width: 38px; height: 22px; border-radius: 6px; background: var(--tb-mac-hover); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><rect x="2" y="6" width="2" height="4" rx="1"/><rect x="5" y="4" width="2" height="8" rx="1"/><rect x="8" y="3" width="2" height="10" rx="1"/><rect x="11" y="5" width="2" height="6" rx="1"/></g></svg></span>
+              <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.8" cy="6.8" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.3 10.3l3.9 3.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2.5" width="14" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="12.5" cy="5" r="1.5" fill="currentColor"/><rect x="1" y="9" width="14" height="5" rx="2.5" fill="currentColor"/><circle cx="3.5" cy="11.5" r="1.5" style="fill: var(--tb-mac-bg)"/></svg>
+              <span aria-hidden="true" style="margin-left: auto; white-space: nowrap">Sun Nov 15&nbsp;&nbsp;6:01 PM</span>
+            </span>
+            <span class="l-bar l-bar-linux" role="img" data-label="barLinux" aria-label="The Ubuntu top bar with the radio">
+              <span class="l-bar-ext" aria-hidden="true"></span>
+              <span class="l-bar-icon" style="position: absolute; left: 39px; top: 4px; width: 42px; height: 24px; border-radius: 12px; background: rgba(255, 255, 255, 0.22); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><rect x="2" y="6" width="2" height="4" rx="1"/><rect x="5" y="4" width="2" height="8" rx="1"/><rect x="8" y="3" width="2" height="10" rx="1"/><rect x="11" y="5" width="2" height="6" rx="1"/></g></svg></span>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 100px; top: 8px"><path d="M2 6h2.6L8 3v10L4.6 10H2z" fill="currentColor"/><path d="M10.4 5.6a3.2 3.2 0 0 1 0 4.8M12.3 3.8a5.8 5.8 0 0 1 0 8.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="position: absolute; left: 127px; top: 8px"><path d="M5 3.8a5.6 5.6 0 1 0 6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 1.6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+          </span>
+          <span class="l-hint" id="hint">Click the icon by the clock</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="l-features l-wrap" id="features">
+      <h2 data-text="featuresTitle">Everything a radio needs. Nothing else.</h2>
+      <p data-text="featuresText">Left click on the icon opens the player, right click the menu. Your stations, the song that's playing, volume and Stop.</p>
+    </section>
+
+    <section class="l-strip l-wrap" data-label="stripLabel" aria-label="Stations to try">
+      <p data-text="stripTitle">Pick a station to add it to your radio</p>
+      <div class="l-strip-window">
+        <div class="l-track" id="track"></div>
+      </div>
+    </section>
+
+    <section class="l-row l-wrap" id="stations">
+      <div class="l-row-text">
+        <span class="l-eyebrow" data-text="stationsEyebrow">Stations</span>
+        <h3 data-text="stationsTitle">Thousands of stations, with suggestions for your country</h3>
+        <p data-text="stationsText">Search radio-browser.info by name, genre or city. Logos, codec and bitrate at a glance, and drag your list into any order.</p>
+      </div>
+      <div class="l-row-media l-well"><picture><source media="(prefers-color-scheme: dark)" data-shot="search"><img class="l-shot" data-shot="search" data-alt="stationsAlt" alt="Station search on Windows" decoding="async"></picture></div>
+    </section>
+
+    <section class="l-row l-wrap flip" id="statistics">
+      <div class="l-row-text">
+        <span class="l-eyebrow" data-text="statsEyebrow">Statistics</span>
+        <h3 data-text="statsTitle">See what you listen to</h3>
+        <p data-text="statsText">Listening time this month, this year or all time, your top stations and artists, and the hours you listen most. Counted only on your computer, and you can switch it off.</p>
+      </div>
+      <div class="l-row-media l-well"><picture><source media="(prefers-color-scheme: dark)" data-shot="statistics"><img class="l-shot" data-shot="statistics" data-alt="statsAlt" alt="Statistics on Windows" decoding="async"></picture></div>
+    </section>
+
+    <section class="l-row l-wrap" id="share">
+      <div class="l-row-text">
+        <span class="l-eyebrow" data-text="shareEyebrow">Share</span>
+        <h3 data-text="shareTitle">Share a station with one link</h3>
+        <p data-text="shareText">Found a station you love? Copy its link from the station menu and send it to a friend. One click adds it to their radio.</p>
+      </div>
+      <div class="l-row-media l-well"><picture><source media="(prefers-color-scheme: dark)" data-shot="shared"><img class="l-shot" data-shot="shared" data-alt="shareAlt" alt="A shared station on Windows" decoding="async"></picture></div>
+    </section>
+
+    <section class="l-cards l-wrap" id="privacy">
+      <div class="l-card"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5 M12 7v5l4 2"/></svg><h4 data-text="historyTitle">Song history</h4><p data-text="historyText">Every song the stations announce. Copy it, or find it on Spotify or YouTube.</p></div>
+      <div class="l-card"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><h4 data-text="sleepTitle">Sleep timer and media keys</h4><p data-text="sleepText">Fall asleep to the radio. Play and Stop from the keyboard or your headphones.</p></div>
+      <div class="l-card"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9Z M12 8v8 M8 12l4 4 4-4"/></svg><h4 data-text="updatesTitle">Updates itself</h4><p data-text="updatesText">A green arrow shows when a new version is ready. One click and it is done.</p></div>
+      <div class="l-card"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6 M4 14l6-6 2-3 M2 5h12 M7 2h1 M22 22l-5-10-5 10 M14 18h6"/></svg><h4 data-text="languagesTitle">Nine languages</h4><p data-text="languagesText">English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština and Українська.</p></div>
+      <div class="l-card"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg><h4 data-text="privateTitle">Private</h4><p data-text="privateText">No account, no ads, no tracking. Your stations and statistics stay on your computer.</p></div>
+      <div class="l-card"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96 12 12.01l8.73-5.05 M12 22.08V12"/></svg><h4 data-text="smallTitle">Small and native</h4><p data-text="smallText">One 260 KB .exe on Windows, no installer. Made the native way on every system.</p></div>
+    </section>
+
+    <section class="l-cta-wrap l-wrap">
+      <div class="l-cta">
+        <h2 data-text="ctaTitle">Get Minimalistic Radio</h2>
+        <p data-text="ctaText">Free and open source. No account, no ads, no tracking.</p>
+        <div class="l-cta-buttons">
+          <a class="l-cta-button main" data-os="windows" href="https://github.com/zal3wa/minimalistic-radio/releases/latest/download/Minimalistic-Radio.exe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"/></svg>Windows</a>
+          <a class="l-cta-button" data-os="macos" href="https://github.com/zal3wa/minimalistic-radio/releases/download/macos-download/Minimalistic-Radio.dmg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"/></svg>macOS</a>
+          <a class="l-cta-button" data-os="linux" href="https://zal3wa.github.io/minimalistic-radio/minimalistic-radio.flatpakref"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"/></svg>Linux</a>
+        </div>
+        <a class="l-cta-source" href="https://github.com/zal3wa/minimalistic-radio" data-text="ctaSource">Source code, issues and every version on GitHub&nbsp;↗</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="l-footer l-wrap">
+    <span data-text="footerName">Minimalistic Radio · MIT licence</span>
+    <a href="https://github.com/zal3wa/minimalistic-radio#privacy" data-text="footerPrivacy">Privacy</a>
+    <a href="https://github.com/zal3wa/minimalistic-radio">GitHub</a>
+  </footer>
+</div>
+
+<main class="share-view" id="share-view" hidden>
   <div class="column">
     <div class="brand">
       <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><circle class="disc" cx="16" cy="16" r="15.5"/><g class="bars"><rect x="7" y="12" width="3" height="8" rx="1.5"/><rect x="12" y="8" width="3" height="16" rx="1.5"/><rect x="17" y="6" width="3" height="20" rx="1.5"/><rect x="22" y="10" width="3" height="12" rx="1.5"/></g></svg>
       <span>Minimalistic Radio</span>
     </div>
 
-    <section class="card" id="station" hidden>
+    <section class="card" id="station">
       <div class="logo empty" id="logo">
         <svg class="glyph" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 L3 6 A2 2 0 0 1 5 4 H19 A2 2 0 0 1 21 6 V18 A2 2 0 0 1 19 20 H5 A2 2 0 0 1 3 18 Z M3 10 H21 M7 15 H7.01 M11 15 H17"/></svg>
       </div>
@@ -213,11 +659,11 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-
       </div>
     </section>
 
-    <section class="get solo" id="get">
-      <h2 id="get-title" data-text="get" hidden>Don't have Minimalistic Radio yet?</h2>
+    <section class="get">
+      <h2 data-text="get">Don't have Minimalistic Radio yet?</h2>
       <p data-text="about">A tiny, free radio for Windows, macOS and Linux. It sits next to the clock and plays the stations you add.</p>
       <a class="secondary" href="https://github.com/zal3wa/minimalistic-radio"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"/></svg><span data-text="download">Download from GitHub</span></a>
-      <span class="note" id="after" hidden></span>
+      <span class="note" id="after"></span>
     </section>
   </div>
 </main>
@@ -362,6 +808,533 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-
     }
   };
 
+  // The landing page's texts. {0} is a number or a system's name. statDownloads has the plural forms of
+  // Intl.PluralRules (one, few, many, other).
+  var LANDING_TEXTS = {
+    en: {
+      navFeatures: 'Features',
+      navPrivacy: 'Privacy',
+      pillNew: 'New',
+      pillText: 'Share a station with one link',
+      heroTitle: 'A tiny radio that lives next to the clock.',
+      heroLead: 'Thousands of internet stations, one click away. Free and open source for Windows, macOS and Linux, and only 260 KB on Windows.',
+      dlWindows: 'Download for Windows',
+      dlMacos: 'Download for macOS',
+      dlLinux: 'Download for Linux',
+      subWindows: '260 KB · Windows 10 and 11',
+      subMacos: 'Beta · macOS 13 or newer',
+      subLinux: 'Beta · Flatpak, updates itself',
+      phoneNote: 'The radio runs on computers. Open this page on Windows, macOS or Linux to install it.',
+      statDownloads: { one: '{0} download on GitHub', other: '{0} downloads on GitHub' },
+      statLicence: 'Free, MIT licence',
+      statPrivate: 'No account, no ads, no tracking',
+      hintWindows: 'Click the icon by the clock',
+      hintMacos: 'Click the icon in the menu bar',
+      hintLinux: 'Click the icon in the top bar or panel',
+      barWindows: 'The Windows taskbar with the radio next to the clock',
+      barMacos: 'The macOS menu bar with the radio',
+      barLinux: 'The Ubuntu top bar with the radio',
+      demoLabel: "Minimalistic Radio on {0}: the player, Song history, a song's menu with Search on Spotify, and Statistics",
+      featuresTitle: 'Everything a radio needs. Nothing else.',
+      featuresText: "Left click on the icon opens the player, right click the menu. Your stations, the song that's playing, volume and Stop.",
+      stripLabel: 'Stations to try',
+      stripTitle: 'Pick a station to add it to your radio',
+      stationsEyebrow: 'Stations',
+      stationsTitle: 'Thousands of stations, with suggestions for your country',
+      stationsText: 'Search radio-browser.info by name, genre or city. Logos, codec and bitrate at a glance, and drag your list into any order.',
+      stationsAlt: 'Station search on {0}',
+      statsEyebrow: 'Statistics',
+      statsTitle: 'See what you listen to',
+      statsText: 'Listening time this month, this year or all time, your top stations and artists, and the hours you listen most. Counted only on your computer, and you can switch it off.',
+      statsAlt: 'Statistics on {0}',
+      shareEyebrow: 'Share',
+      shareTitle: 'Share a station with one link',
+      shareText: 'Found a station you love? Copy its link from the station menu and send it to a friend. One click adds it to their radio.',
+      shareAlt: 'A shared station on {0}',
+      historyTitle: 'Song history',
+      historyText: 'Every song the stations announce. Copy it, or find it on Spotify or YouTube.',
+      sleepTitle: 'Sleep timer and media keys',
+      sleepText: 'Fall asleep to the radio. Play and Stop from the keyboard or your headphones.',
+      updatesTitle: 'Updates itself',
+      updatesText: 'A green arrow shows when a new version is ready. One click and it is done.',
+      languagesTitle: 'Nine languages',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština and Українська.',
+      privateTitle: 'Private',
+      privateText: 'No account, no ads, no tracking. Your stations and statistics stay on your computer.',
+      smallTitle: 'Small and native',
+      smallText: 'One 260 KB .exe on Windows, no installer. Made the native way on every system.',
+      ctaTitle: 'Get Minimalistic Radio',
+      ctaText: 'Free and open source. No account, no ads, no tracking.',
+      ctaSource: 'Source code, issues and every version on GitHub\u00a0↗',
+      footerName: 'Minimalistic Radio · MIT licence',
+      footerPrivacy: 'Privacy'
+    },
+    cs: {
+      navFeatures: 'Funkce',
+      navPrivacy: 'Soukromí',
+      pillNew: 'Novinka',
+      pillText: 'Sdílejte stanici jedním odkazem',
+      heroTitle: 'Malé rádio, které bydlí u hodin.',
+      heroLead: 'Tisíce internetových stanic na jedno kliknutí. Zdarma a s otevřeným kódem pro Windows, macOS a Linux, a ve Windows má jen 260 KB.',
+      dlWindows: 'Stáhnout pro Windows',
+      dlMacos: 'Stáhnout pro macOS',
+      dlLinux: 'Stáhnout pro Linux',
+      subWindows: '260 KB · Windows 10 a 11',
+      subMacos: 'Beta · macOS 13 nebo novější',
+      subLinux: 'Beta · Flatpak, aktualizuje se samo',
+      phoneNote: 'Rádio běží na počítačích. Pokud ho chcete nainstalovat, otevřete tuto stránku ve Windows, macOS nebo Linuxu.',
+      statDownloads: { other: '{0} stažení z GitHubu' },
+      statLicence: 'Zdarma, licence MIT',
+      statPrivate: 'Bez účtu, reklam a sledování',
+      hintWindows: 'Klikněte na ikonu u hodin',
+      hintMacos: 'Klikněte na ikonu v řádku nabídek',
+      hintLinux: 'Klikněte na ikonu v horní liště nebo panelu',
+      barWindows: 'Hlavní panel Windows s rádiem u hodin',
+      barMacos: 'Řádek nabídek macOS s rádiem',
+      barLinux: 'Horní lišta Ubuntu s rádiem',
+      demoLabel: 'Minimalistic Radio v systému {0}: přehrávač, historie skladeb, nabídka skladby s položkou Hledat na Spotify a statistiky',
+      featuresTitle: 'Všechno, co rádio potřebuje. Nic navíc.',
+      featuresText: 'Kliknutím levým tlačítkem na ikonu otevřete přehrávač, pravým nabídku. Vaše stanice, právě hrající skladba, hlasitost a Zastavit.',
+      stripLabel: 'Stanice na vyzkoušení',
+      stripTitle: 'Vyberte stanici a přidejte si ji do rádia',
+      stationsEyebrow: 'Stanice',
+      stationsTitle: 'Tisíce stanic s tipy pro vaši zemi',
+      stationsText: 'Hledejte v radio-browser.info podle názvu, žánru nebo města. Loga, kodek a datový tok na první pohled a seznam si přetažením seřadíte, jak chcete.',
+      stationsAlt: 'Hledání stanic v systému {0}',
+      statsEyebrow: 'Statistiky',
+      statsTitle: 'Podívejte se, co posloucháte',
+      statsText: 'Doba poslechu za tento měsíc, tento rok nebo celkově, vaše nejposlouchanější stanice a interpreti a hodiny, kdy posloucháte nejvíc. Počítá se jen ve vašem počítači a můžete to vypnout.',
+      statsAlt: 'Statistiky v systému {0}',
+      shareEyebrow: 'Sdílení',
+      shareTitle: 'Sdílejte stanici jedním odkazem',
+      shareText: 'Našli jste stanici, kterou milujete? Zkopírujte její odkaz z nabídky stanice a pošlete ho přátelům. Jedním kliknutím si ji přidají do rádia.',
+      shareAlt: 'Sdílená stanice v systému {0}',
+      historyTitle: 'Historie skladeb',
+      historyText: 'Každá skladba, kterou stanice ohlásí. Zkopírujte ji nebo ji najděte na Spotify či YouTube.',
+      sleepTitle: 'Časovač vypnutí a multimediální klávesy',
+      sleepText: 'Usínejte s rádiem. Přehrávání a zastavení z klávesnice nebo sluchátek.',
+      updatesTitle: 'Aktualizuje se samo',
+      updatesText: 'Zelená šipka ukáže, že je připravená nová verze. Jedno kliknutí a hotovo.',
+      languagesTitle: 'Devět jazyků',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština a Українська.',
+      privateTitle: 'Soukromé',
+      privateText: 'Bez účtu, reklam a sledování. Vaše stanice a statistiky zůstávají ve vašem počítači.',
+      smallTitle: 'Malé a nativní',
+      smallText: 'Ve Windows jediný soubor .exe o velikosti 260 KB, bez instalace. V každém systému vytvořené nativně.',
+      ctaTitle: 'Získejte Minimalistic Radio',
+      ctaText: 'Zdarma a s otevřeným kódem. Bez účtu, reklam a sledování.',
+      ctaSource: 'Zdrojový kód, hlášení chyb a všechny verze na GitHubu\u00a0↗',
+      footerName: 'Minimalistic Radio · licence MIT',
+      footerPrivacy: 'Soukromí'
+    },
+    de: {
+      navFeatures: 'Funktionen',
+      navPrivacy: 'Datenschutz',
+      pillNew: 'Neu',
+      pillText: 'Einen Sender mit einem Link teilen',
+      heroTitle: 'Ein kleines Radio, das neben der Uhr wohnt.',
+      heroLead: 'Tausende Internetsender, nur einen Klick entfernt. Kostenlos und quelloffen für Windows, macOS und Linux, und unter Windows nur 260 KB groß.',
+      dlWindows: 'Für Windows herunterladen',
+      dlMacos: 'Für macOS herunterladen',
+      dlLinux: 'Für Linux herunterladen',
+      subWindows: '260 KB · Windows 10 und 11',
+      subMacos: 'Beta · macOS 13 oder neuer',
+      subLinux: 'Beta · Flatpak, aktualisiert sich selbst',
+      phoneNote: 'Das Radio läuft auf Computern. Öffnen Sie diese Seite unter Windows, macOS oder Linux, um es zu installieren.',
+      statDownloads: { one: '{0} Download auf GitHub', other: '{0} Downloads auf GitHub' },
+      statLicence: 'Kostenlos, MIT-Lizenz',
+      statPrivate: 'Kein Konto, keine Werbung, kein Tracking',
+      hintWindows: 'Klicken Sie auf das Symbol neben der Uhr',
+      hintMacos: 'Klicken Sie auf das Symbol in der Menüleiste',
+      hintLinux: 'Klicken Sie auf das Symbol in der oberen Leiste oder im Panel',
+      barWindows: 'Die Windows-Taskleiste mit dem Radio neben der Uhr',
+      barMacos: 'Die macOS-Menüleiste mit dem Radio',
+      barLinux: 'Die obere Leiste von Ubuntu mit dem Radio',
+      demoLabel: 'Minimalistic Radio unter {0}: der Player, der Titelverlauf, das Menü eines Titels mit „Auf Spotify suchen“ und die Statistik',
+      featuresTitle: 'Alles, was ein Radio braucht. Sonst nichts.',
+      featuresText: 'Ein Linksklick auf das Symbol öffnet den Player, ein Rechtsklick das Menü. Ihre Sender, der laufende Titel, die Lautstärke und Stopp.',
+      stripLabel: 'Sender zum Ausprobieren',
+      stripTitle: 'Wählen Sie einen Sender, um ihn Ihrem Radio hinzuzufügen',
+      stationsEyebrow: 'Sender',
+      stationsTitle: 'Tausende Sender, mit Vorschlägen für Ihr Land',
+      stationsText: 'Durchsuchen Sie radio-browser.info nach Name, Genre oder Stadt. Logos, Codec und Bitrate auf einen Blick, und Ihre Liste ordnen Sie per Ziehen beliebig an.',
+      stationsAlt: 'Sendersuche unter {0}',
+      statsEyebrow: 'Statistik',
+      statsTitle: 'Sehen Sie, was Sie hören',
+      statsText: 'Hörzeit in diesem Monat, in diesem Jahr oder insgesamt, Ihre meistgehörten Sender und Interpreten und die Stunden, in denen Sie am meisten hören. Nur auf Ihrem Computer gezählt, und Sie können es abschalten.',
+      statsAlt: 'Statistik unter {0}',
+      shareEyebrow: 'Teilen',
+      shareTitle: 'Einen Sender mit einem Link teilen',
+      shareText: 'Einen Lieblingssender gefunden? Kopieren Sie seinen Link aus dem Sendermenü und schicken Sie ihn an Freunde. Mit einem Klick landet er in deren Radio.',
+      shareAlt: 'Ein geteilter Sender unter {0}',
+      historyTitle: 'Titelverlauf',
+      historyText: 'Jeder Titel, den die Sender ansagen. Kopieren Sie ihn oder finden Sie ihn auf Spotify oder YouTube.',
+      sleepTitle: 'Sleep-Timer und Medientasten',
+      sleepText: 'Schlafen Sie mit Radio ein. Abspielen und Stoppen über die Tastatur oder Ihre Kopfhörer.',
+      updatesTitle: 'Aktualisiert sich selbst',
+      updatesText: 'Ein grüner Pfeil zeigt, wenn eine neue Version bereit ist. Ein Klick, und fertig.',
+      languagesTitle: 'Neun Sprachen',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština und Українська.',
+      privateTitle: 'Privat',
+      privateText: 'Kein Konto, keine Werbung, kein Tracking. Ihre Sender und Statistiken bleiben auf Ihrem Computer.',
+      smallTitle: 'Klein und nativ',
+      smallText: 'Unter Windows eine einzige .exe mit 260 KB, ohne Installation. Auf jedem System nativ umgesetzt.',
+      ctaTitle: 'Minimalistic Radio holen',
+      ctaText: 'Kostenlos und quelloffen. Kein Konto, keine Werbung, kein Tracking.',
+      ctaSource: 'Quellcode, Issues und alle Versionen auf GitHub\u00a0↗',
+      footerName: 'Minimalistic Radio · MIT-Lizenz',
+      footerPrivacy: 'Datenschutz'
+    },
+    es: {
+      navFeatures: 'Funciones',
+      navPrivacy: 'Privacidad',
+      pillNew: 'Nuevo',
+      pillText: 'Comparte una emisora con un enlace',
+      heroTitle: 'Una radio diminuta que vive junto al reloj.',
+      heroLead: 'Miles de emisoras de internet a un clic. Gratis y de código abierto para Windows, macOS y Linux, y solo 260 KB en Windows.',
+      dlWindows: 'Descargar para Windows',
+      dlMacos: 'Descargar para macOS',
+      dlLinux: 'Descargar para Linux',
+      subWindows: '260 KB · Windows 10 y 11',
+      subMacos: 'Beta · macOS 13 o posterior',
+      subLinux: 'Beta · Flatpak, se actualiza sola',
+      phoneNote: 'La radio funciona en ordenadores. Abre esta página en Windows, macOS o Linux para instalarla.',
+      statDownloads: { one: '{0} descarga en GitHub', other: '{0} descargas en GitHub' },
+      statLicence: 'Gratis, licencia MIT',
+      statPrivate: 'Sin cuenta, sin anuncios, sin rastreo',
+      hintWindows: 'Haz clic en el icono junto al reloj',
+      hintMacos: 'Haz clic en el icono de la barra de menús',
+      hintLinux: 'Haz clic en el icono de la barra superior o del panel',
+      barWindows: 'La barra de tareas de Windows con la radio junto al reloj',
+      barMacos: 'La barra de menús de macOS con la radio',
+      barLinux: 'La barra superior de Ubuntu con la radio',
+      demoLabel: 'Minimalistic Radio en {0}: el reproductor, el historial de canciones, el menú de una canción con Buscar en Spotify y las estadísticas',
+      featuresTitle: 'Todo lo que necesita una radio. Nada más.',
+      featuresText: 'Un clic izquierdo en el icono abre el reproductor; uno derecho, el menú. Tus emisoras, la canción que suena, el volumen y Detener.',
+      stripLabel: 'Emisoras para probar',
+      stripTitle: 'Elige una emisora para añadirla a tu radio',
+      stationsEyebrow: 'Emisoras',
+      stationsTitle: 'Miles de emisoras, con sugerencias de tu país',
+      stationsText: 'Busca en radio-browser.info por nombre, género o ciudad. Logotipos, códec y tasa de bits de un vistazo, y ordena tu lista arrastrando.',
+      stationsAlt: 'Búsqueda de emisoras en {0}',
+      statsEyebrow: 'Estadísticas',
+      statsTitle: 'Descubre lo que escuchas',
+      statsText: 'Tiempo de escucha este mes, este año o desde siempre, tus emisoras y artistas favoritos y las horas en que más escuchas. Se cuenta solo en tu ordenador y puedes desactivarlo.',
+      statsAlt: 'Estadísticas en {0}',
+      shareEyebrow: 'Compartir',
+      shareTitle: 'Comparte una emisora con un enlace',
+      shareText: '¿Has encontrado una emisora que te encanta? Copia su enlace desde el menú de la emisora y envíaselo a un amigo. Con un clic se añade a su radio.',
+      shareAlt: 'Una emisora compartida en {0}',
+      historyTitle: 'Historial de canciones',
+      historyText: 'Cada canción que anuncian las emisoras. Cópiala o búscala en Spotify o YouTube.',
+      sleepTitle: 'Temporizador de apagado y teclas multimedia',
+      sleepText: 'Duérmete con la radio. Reproduce y detén desde el teclado o los auriculares.',
+      updatesTitle: 'Se actualiza sola',
+      updatesText: 'Una flecha verde avisa cuando hay una nueva versión lista. Un clic y listo.',
+      languagesTitle: 'Nueve idiomas',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština y Українська.',
+      privateTitle: 'Privada',
+      privateText: 'Sin cuenta, sin anuncios, sin rastreo. Tus emisoras y estadísticas se quedan en tu ordenador.',
+      smallTitle: 'Pequeña y nativa',
+      smallText: 'Un único .exe de 260 KB en Windows, sin instalador. Hecha de forma nativa en cada sistema.',
+      ctaTitle: 'Consigue Minimalistic Radio',
+      ctaText: 'Gratis y de código abierto. Sin cuenta, sin anuncios, sin rastreo.',
+      ctaSource: 'Código fuente, incidencias y todas las versiones en GitHub\u00a0↗',
+      footerName: 'Minimalistic Radio · Licencia MIT',
+      footerPrivacy: 'Privacidad'
+    },
+    fr: {
+      navFeatures: 'Fonctionnalités',
+      navPrivacy: 'Confidentialité',
+      pillNew: 'Nouveau',
+      pillText: 'Partagez une station avec un lien',
+      heroTitle: "Une petite radio qui vit près de l'horloge.",
+      heroLead: 'Des milliers de stations en ligne, à un clic. Gratuite et open source pour Windows, macOS et Linux, et seulement 260 Ko sous Windows.',
+      dlWindows: 'Télécharger pour Windows',
+      dlMacos: 'Télécharger pour macOS',
+      dlLinux: 'Télécharger pour Linux',
+      subWindows: '260 Ko · Windows 10 et 11',
+      subMacos: 'Bêta · macOS 13 ou plus récent',
+      subLinux: 'Bêta · Flatpak, se met à jour seule',
+      phoneNote: "La radio fonctionne sur ordinateur. Ouvrez cette page sous Windows, macOS ou Linux pour l'installer.",
+      statDownloads: { one: '{0} téléchargement sur GitHub', other: '{0} téléchargements sur GitHub' },
+      statLicence: 'Gratuite, licence MIT',
+      statPrivate: 'Sans compte, sans pub, sans pistage',
+      hintWindows: "Cliquez sur l'icône près de l'horloge",
+      hintMacos: "Cliquez sur l'icône dans la barre des menus",
+      hintLinux: "Cliquez sur l'icône dans la barre supérieure ou le panneau",
+      barWindows: "La barre des tâches de Windows avec la radio près de l'horloge",
+      barMacos: 'La barre des menus de macOS avec la radio',
+      barLinux: "La barre supérieure d'Ubuntu avec la radio",
+      demoLabel: "Minimalistic Radio sous {0} : le lecteur, l'historique des titres, le menu d'un titre avec Rechercher sur Spotify, et les statistiques",
+      featuresTitle: "Tout ce qu'il faut à une radio. Rien de plus.",
+      featuresText: "Un clic gauche sur l'icône ouvre le lecteur, un clic droit le menu. Vos stations, le titre en cours, le volume et Arrêter.",
+      stripLabel: 'Stations à essayer',
+      stripTitle: "Choisissez une station pour l'ajouter à votre radio",
+      stationsEyebrow: 'Stations',
+      stationsTitle: 'Des milliers de stations, avec des suggestions pour votre pays',
+      stationsText: "Cherchez dans radio-browser.info par nom, genre ou ville. Logos, codec et débit en un coup d'œil, et réorganisez votre liste par glisser-déposer.",
+      stationsAlt: 'Recherche de stations sous {0}',
+      statsEyebrow: 'Statistiques',
+      statsTitle: 'Voyez ce que vous écoutez',
+      statsText: "Le temps d'écoute ce mois-ci, cette année ou depuis le début, vos stations et artistes préférés, et les heures où vous écoutez le plus. Compté uniquement sur votre ordinateur, et vous pouvez le désactiver.",
+      statsAlt: 'Statistiques sous {0}',
+      shareEyebrow: 'Partage',
+      shareTitle: 'Partagez une station avec un lien',
+      shareText: "Vous avez trouvé une station que vous adorez ? Copiez son lien depuis le menu de la station et envoyez-le à un ami. Un clic l'ajoute à sa radio.",
+      shareAlt: 'Une station partagée sous {0}',
+      historyTitle: 'Historique des titres',
+      historyText: 'Chaque titre annoncé par les stations. Copiez-le, ou trouvez-le sur Spotify ou YouTube.',
+      sleepTitle: "Minuteur d'arrêt et touches multimédias",
+      sleepText: 'Endormez-vous avec la radio. Lecture et arrêt depuis le clavier ou votre casque.',
+      updatesTitle: 'Se met à jour seule',
+      updatesText: "Une flèche verte apparaît quand une nouvelle version est prête. Un clic, et c'est fait.",
+      languagesTitle: 'Neuf langues',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština et Українська.',
+      privateTitle: 'Privée',
+      privateText: 'Sans compte, sans pub, sans pistage. Vos stations et statistiques restent sur votre ordinateur.',
+      smallTitle: 'Petite et native',
+      smallText: 'Un seul .exe de 260 Ko sous Windows, sans installation. Conçue de façon native sur chaque système.',
+      ctaTitle: 'Obtenir Minimalistic Radio',
+      ctaText: 'Gratuite et open source. Sans compte, sans pub, sans pistage.',
+      ctaSource: 'Code source, tickets et toutes les versions sur GitHub\u00a0↗',
+      footerName: 'Minimalistic Radio · Licence MIT',
+      footerPrivacy: 'Confidentialité'
+    },
+    it: {
+      navFeatures: 'Funzioni',
+      navPrivacy: 'Privacy',
+      pillNew: 'Novità',
+      pillText: 'Condividi una stazione con un link',
+      heroTitle: "Una piccola radio che vive accanto all'orologio.",
+      heroLead: 'Migliaia di stazioni internet a portata di clic. Gratuita e open source per Windows, macOS e Linux, e su Windows pesa solo 260 KB.',
+      dlWindows: 'Scarica per Windows',
+      dlMacos: 'Scarica per macOS',
+      dlLinux: 'Scarica per Linux',
+      subWindows: '260 KB · Windows 10 e 11',
+      subMacos: 'Beta · macOS 13 o successivo',
+      subLinux: 'Beta · Flatpak, si aggiorna da sola',
+      phoneNote: 'La radio funziona sui computer. Apri questa pagina su Windows, macOS o Linux per installarla.',
+      statDownloads: { other: '{0} download su GitHub' },
+      statLicence: 'Gratuita, licenza MIT',
+      statPrivate: 'Nessun account, niente pubblicità, nessun tracciamento',
+      hintWindows: "Fai clic sull'icona accanto all'orologio",
+      hintMacos: "Fai clic sull'icona nella barra dei menu",
+      hintLinux: "Fai clic sull'icona nella barra superiore o nel pannello",
+      barWindows: "La barra delle applicazioni di Windows con la radio accanto all'orologio",
+      barMacos: 'La barra dei menu di macOS con la radio',
+      barLinux: 'La barra superiore di Ubuntu con la radio',
+      demoLabel: 'Minimalistic Radio su {0}: il lettore, la cronologia brani, il menu di un brano con Cerca su Spotify e le statistiche',
+      featuresTitle: "Tutto ciò che serve a una radio. Nient'altro.",
+      featuresText: "Un clic sinistro sull'icona apre il lettore, un clic destro il menu. Le tue stazioni, il brano in onda, il volume e Interrompi.",
+      stripLabel: 'Stazioni da provare',
+      stripTitle: 'Scegli una stazione per aggiungerla alla tua radio',
+      stationsEyebrow: 'Stazioni',
+      stationsTitle: 'Migliaia di stazioni, con suggerimenti per il tuo paese',
+      stationsText: "Cerca su radio-browser.info per nome, genere o città. Logo, codec e bitrate a colpo d'occhio, e riordina la tua lista trascinando.",
+      stationsAlt: 'Ricerca di stazioni su {0}',
+      statsEyebrow: 'Statistiche',
+      statsTitle: 'Scopri cosa ascolti',
+      statsText: "Il tempo di ascolto di questo mese, di quest'anno o di sempre, le tue stazioni e i tuoi artisti preferiti e le ore in cui ascolti di più. Conteggiato solo sul tuo computer, e puoi disattivarlo.",
+      statsAlt: 'Statistiche su {0}',
+      shareEyebrow: 'Condivisione',
+      shareTitle: 'Condividi una stazione con un link',
+      shareText: 'Hai trovato una stazione che ami? Copia il suo link dal menu della stazione e mandalo a un amico. Un clic la aggiunge alla sua radio.',
+      shareAlt: 'Una stazione condivisa su {0}',
+      historyTitle: 'Cronologia brani',
+      historyText: 'Ogni brano annunciato dalle stazioni. Copialo, oppure cercalo su Spotify o YouTube.',
+      sleepTitle: 'Timer di spegnimento e tasti multimediali',
+      sleepText: 'Addormentati con la radio. Avvia e interrompi dalla tastiera o dalle cuffie.',
+      updatesTitle: 'Si aggiorna da sola',
+      updatesText: 'Una freccia verde indica che una nuova versione è pronta. Un clic ed è fatto.',
+      languagesTitle: 'Nove lingue',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština e Українська.',
+      privateTitle: 'Privata',
+      privateText: 'Nessun account, niente pubblicità, nessun tracciamento. Le tue stazioni e statistiche restano sul tuo computer.',
+      smallTitle: 'Piccola e nativa',
+      smallText: 'Un solo .exe da 260 KB su Windows, senza installazione. Realizzata in modo nativo su ogni sistema.',
+      ctaTitle: 'Scarica Minimalistic Radio',
+      ctaText: 'Gratuita e open source. Nessun account, niente pubblicità, nessun tracciamento.',
+      ctaSource: 'Codice sorgente, segnalazioni e tutte le versioni su GitHub\u00a0↗',
+      footerName: 'Minimalistic Radio · Licenza MIT',
+      footerPrivacy: 'Privacy'
+    },
+    pl: {
+      navFeatures: 'Funkcje',
+      navPrivacy: 'Prywatność',
+      pillNew: 'Nowość',
+      pillText: 'Udostępnij stację jednym linkiem',
+      heroTitle: 'Małe radio, które mieszka obok zegara.',
+      heroLead: 'Tysiące stacji internetowych o jedno kliknięcie. Darmowe i otwarte, na Windows, macOS i Linuksa, a na Windows ma tylko 260 KB.',
+      dlWindows: 'Pobierz na Windows',
+      dlMacos: 'Pobierz na macOS',
+      dlLinux: 'Pobierz na Linuksa',
+      subWindows: '260 KB · Windows 10 i 11',
+      subMacos: 'Beta · macOS 13 lub nowszy',
+      subLinux: 'Beta · Flatpak, aktualizuje się sam',
+      phoneNote: 'Radio działa na komputerach. Otwórz tę stronę w systemie Windows, macOS lub Linux, żeby je zainstalować.',
+      statDownloads: { one: '{0} pobranie z GitHuba', few: '{0} pobrania z GitHuba', many: '{0} pobrań z GitHuba', other: '{0} pobrania z GitHuba' },
+      statLicence: 'Darmowe, licencja MIT',
+      statPrivate: 'Bez konta, reklam i śledzenia',
+      hintWindows: 'Kliknij ikonę obok zegara',
+      hintMacos: 'Kliknij ikonę na pasku menu',
+      hintLinux: 'Kliknij ikonę na górnym pasku lub panelu',
+      barWindows: 'Pasek zadań Windows z radiem obok zegara',
+      barMacos: 'Pasek menu macOS z radiem',
+      barLinux: 'Górny pasek Ubuntu z radiem',
+      demoLabel: 'Minimalistic Radio w systemie {0}: odtwarzacz, historia utworów, menu utworu z opcją Szukaj w Spotify i statystyki',
+      featuresTitle: 'Wszystko, czego potrzeba radiu. Nic więcej.',
+      featuresText: 'Kliknięcie ikony lewym przyciskiem otwiera odtwarzacz, prawym – menu. Twoje stacje, grający utwór, głośność i przycisk Zatrzymaj.',
+      stripLabel: 'Stacje do wypróbowania',
+      stripTitle: 'Wybierz stację, żeby dodać ją do swojego radia',
+      stationsEyebrow: 'Stacje',
+      stationsTitle: 'Tysiące stacji i propozycje z Twojego kraju',
+      stationsText: 'Szukaj w katalogu radio-browser.info po nazwie, gatunku lub mieście. Logo, kodek i bitrate widać od razu, a listę ułożysz przeciąganiem w dowolnej kolejności.',
+      stationsAlt: 'Wyszukiwanie stacji w systemie {0}',
+      statsEyebrow: 'Statystyki',
+      statsTitle: 'Zobacz, czego słuchasz',
+      statsText: 'Czas słuchania w tym miesiącu, w tym roku lub od początku, Twoje ulubione stacje i wykonawcy oraz godziny, w których słuchasz najczęściej. Liczone tylko na Twoim komputerze i można je wyłączyć.',
+      statsAlt: 'Statystyki w systemie {0}',
+      shareEyebrow: 'Udostępnianie',
+      shareTitle: 'Udostępnij stację jednym linkiem',
+      shareText: 'Masz ulubioną stację? Skopiuj jej link z menu stacji i wyślij znajomym. Jedno kliknięcie doda ją do ich radia.',
+      shareAlt: 'Udostępniona stacja w systemie {0}',
+      historyTitle: 'Historia utworów',
+      historyText: 'Każdy utwór, który podają stacje. Skopiuj go albo znajdź w Spotify lub YouTube.',
+      sleepTitle: 'Wyłącznik czasowy i klawisze multimedialne',
+      sleepText: 'Zasypiaj przy radiu. Graj i zatrzymuj z klawiatury albo ze słuchawek.',
+      updatesTitle: 'Aktualizuje się samo',
+      updatesText: 'Zielona strzałka pokazuje, że nowa wersja jest gotowa. Jedno kliknięcie i gotowe.',
+      languagesTitle: 'Dziewięć języków',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština i Українська.',
+      privateTitle: 'Prywatne',
+      privateText: 'Bez konta, reklam i śledzenia. Twoje stacje i statystyki zostają na Twoim komputerze.',
+      smallTitle: 'Małe i natywne',
+      smallText: 'Na Windows jeden plik .exe o rozmiarze 260 KB, bez instalatora. Na każdym systemie zrobione natywnie.',
+      ctaTitle: 'Pobierz Minimalistic Radio',
+      ctaText: 'Darmowe i otwarte. Bez konta, reklam i śledzenia.',
+      ctaSource: 'Kod źródłowy, zgłoszenia i wszystkie wersje na GitHubie\u00a0↗',
+      footerName: 'Minimalistic Radio · licencja MIT',
+      footerPrivacy: 'Prywatność'
+    },
+    pt: {
+      navFeatures: 'Funcionalidades',
+      navPrivacy: 'Privacidade',
+      pillNew: 'Novo',
+      pillText: 'Partilhe uma estação com uma ligação',
+      heroTitle: 'Um pequeno rádio que vive junto ao relógio.',
+      heroLead: 'Milhares de estações de internet à distância de um clique. Gratuito e de código aberto para Windows, macOS e Linux, e com apenas 260 KB no Windows.',
+      dlWindows: 'Transferir para Windows',
+      dlMacos: 'Transferir para macOS',
+      dlLinux: 'Transferir para Linux',
+      subWindows: '260 KB · Windows 10 e 11',
+      subMacos: 'Beta · macOS 13 ou mais recente',
+      subLinux: 'Beta · Flatpak, atualiza-se sozinho',
+      phoneNote: 'O rádio funciona em computadores. Abra esta página no Windows, macOS ou Linux para o instalar.',
+      statDownloads: { one: '{0} transferência no GitHub', other: '{0} transferências no GitHub' },
+      statLicence: 'Gratuito, licença MIT',
+      statPrivate: 'Sem conta, sem anúncios, sem rastreio',
+      hintWindows: 'Clique no ícone junto ao relógio',
+      hintMacos: 'Clique no ícone na barra de menus',
+      hintLinux: 'Clique no ícone na barra superior ou no painel',
+      barWindows: 'A barra de tarefas do Windows com o rádio junto ao relógio',
+      barMacos: 'A barra de menus do macOS com o rádio',
+      barLinux: 'A barra superior do Ubuntu com o rádio',
+      demoLabel: 'O Minimalistic Radio no {0}: o leitor, o histórico de músicas, o menu de uma música com Procurar no Spotify e as estatísticas',
+      featuresTitle: 'Tudo o que um rádio precisa. Nada mais.',
+      featuresText: 'Um clique esquerdo no ícone abre o leitor; um clique direito, o menu. As suas estações, a música que está a tocar, o volume e Parar.',
+      stripLabel: 'Estações para experimentar',
+      stripTitle: 'Escolha uma estação para a adicionar ao seu rádio',
+      stationsEyebrow: 'Estações',
+      stationsTitle: 'Milhares de estações, com sugestões para o seu país',
+      stationsText: 'Pesquise no radio-browser.info por nome, género ou cidade. Logótipos, codec e taxa de bits num relance, e ordene a sua lista arrastando.',
+      stationsAlt: 'Pesquisa de estações no {0}',
+      statsEyebrow: 'Estatísticas',
+      statsTitle: 'Veja o que ouve',
+      statsText: 'O tempo de audição este mês, este ano ou desde sempre, as suas estações e artistas preferidos e as horas em que mais ouve. Contado apenas no seu computador, e pode desativá-lo.',
+      statsAlt: 'Estatísticas no {0}',
+      shareEyebrow: 'Partilhar',
+      shareTitle: 'Partilhe uma estação com uma ligação',
+      shareText: 'Encontrou uma estação de que gosta muito? Copie a ligação no menu da estação e envie-a a um amigo. Um clique adiciona-a ao rádio dele.',
+      shareAlt: 'Uma estação partilhada no {0}',
+      historyTitle: 'Histórico de músicas',
+      historyText: 'Todas as músicas que as estações anunciam. Copie-as ou procure-as no Spotify ou no YouTube.',
+      sleepTitle: 'Temporizador para desligar e teclas multimédia',
+      sleepText: 'Adormeça a ouvir rádio. Tocar e Parar a partir do teclado ou dos auscultadores.',
+      updatesTitle: 'Atualiza-se sozinho',
+      updatesText: 'Uma seta verde mostra quando há uma nova versão pronta. Um clique e está feito.',
+      languagesTitle: 'Nove idiomas',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština e Українська.',
+      privateTitle: 'Privado',
+      privateText: 'Sem conta, sem anúncios, sem rastreio. As suas estações e estatísticas ficam no seu computador.',
+      smallTitle: 'Pequeno e nativo',
+      smallText: 'Um único .exe de 260 KB no Windows, sem instalador. Feito de forma nativa em cada sistema.',
+      ctaTitle: 'Obtenha o Minimalistic Radio',
+      ctaText: 'Gratuito e de código aberto. Sem conta, sem anúncios, sem rastreio.',
+      ctaSource: 'Código-fonte, problemas e todas as versões no GitHub\u00a0↗',
+      footerName: 'Minimalistic Radio · Licença MIT',
+      footerPrivacy: 'Privacidade'
+    },
+    uk: {
+      navFeatures: 'Можливості',
+      navPrivacy: 'Приватність',
+      pillNew: 'Нове',
+      pillText: 'Діліться станцією одним посиланням',
+      heroTitle: 'Маленьке радіо, що живе біля годинника.',
+      heroLead: 'Тисячі інтернет-станцій на відстані одного клацання. Безкоштовне й відкрите для Windows, macOS і Linux, а у Windows займає лише 260 КБ.',
+      dlWindows: 'Завантажити для Windows',
+      dlMacos: 'Завантажити для macOS',
+      dlLinux: 'Завантажити для Linux',
+      subWindows: '260 КБ · Windows 10 і 11',
+      subMacos: 'Бета · macOS 13 або новіша',
+      subLinux: 'Бета · Flatpak, оновлюється сам',
+      phoneNote: 'Радіо працює на комп’ютерах. Відкрийте цю сторінку у Windows, macOS або Linux, щоб його встановити.',
+      statDownloads: { one: '{0} завантаження з GitHub', few: '{0} завантаження з GitHub', many: '{0} завантажень з GitHub', other: '{0} завантаження з GitHub' },
+      statLicence: 'Безкоштовне, ліцензія MIT',
+      statPrivate: 'Без облікового запису, реклами й стеження',
+      hintWindows: 'Клацніть значок біля годинника',
+      hintMacos: 'Клацніть значок у рядку меню',
+      hintLinux: 'Клацніть значок на верхній панелі чи панелі завдань',
+      barWindows: 'Панель завдань Windows з радіо біля годинника',
+      barMacos: 'Рядок меню macOS з радіо',
+      barLinux: 'Верхня панель Ubuntu з радіо',
+      demoLabel: 'Minimalistic Radio у {0}: програвач, історія пісень, меню пісні з пунктом «Шукати в Spotify» і статистика',
+      featuresTitle: 'Усе, що потрібно радіо. Нічого зайвого.',
+      featuresText: 'Клацання лівою кнопкою на значку відкриває програвач, правою — меню. Ваші станції, пісня, що грає, гучність і Зупинити.',
+      stripLabel: 'Станції, щоб спробувати',
+      stripTitle: 'Виберіть станцію, щоб додати її до свого радіо',
+      stationsEyebrow: 'Станції',
+      stationsTitle: 'Тисячі станцій і пропозиції для вашої країни',
+      stationsText: 'Шукайте в radio-browser.info за назвою, жанром чи містом. Логотипи, кодек і бітрейт одразу видно, а список можна впорядкувати перетягуванням.',
+      stationsAlt: 'Пошук станцій у {0}',
+      statsEyebrow: 'Статистика',
+      statsTitle: 'Дізнайтеся, що ви слухаєте',
+      statsText: 'Час слухання за цей місяць, цей рік чи весь час, ваші найпопулярніші станції та виконавці, а також години, коли ви слухаєте найбільше. Рахується лише на вашому комп’ютері, і це можна вимкнути.',
+      statsAlt: 'Статистика у {0}',
+      shareEyebrow: 'Поділитися',
+      shareTitle: 'Діліться станцією одним посиланням',
+      shareText: 'Знайшли улюблену станцію? Скопіюйте її посилання з меню станції та надішліть другові. Одне клацання додасть її до його радіо.',
+      shareAlt: 'Станція, якою поділилися, у {0}',
+      historyTitle: 'Історія пісень',
+      historyText: 'Кожна пісня, яку оголошують станції. Скопіюйте її або знайдіть у Spotify чи YouTube.',
+      sleepTitle: 'Таймер сну й мультимедійні клавіші',
+      sleepText: 'Засинайте під радіо. Відтворення й зупинка з клавіатури або навушників.',
+      updatesTitle: 'Оновлюється само',
+      updatesText: 'Зелена стрілка показує, що нова версія готова. Одне клацання — і готово.',
+      languagesTitle: 'Дев’ять мов',
+      languagesText: 'English, Polski, Deutsch, Français, Español, Italiano, Português, Čeština і Українська.',
+      privateTitle: 'Приватне',
+      privateText: 'Без облікового запису, реклами й стеження. Ваші станції та статистика залишаються на вашому комп’ютері.',
+      smallTitle: 'Маленьке й нативне',
+      smallText: 'У Windows — один файл .exe на 260 КБ, без інсталятора. На кожній системі зроблене нативно.',
+      ctaTitle: 'Отримайте Minimalistic Radio',
+      ctaText: 'Безкоштовне й відкрите. Без облікового запису, реклами й стеження.',
+      ctaSource: 'Вихідний код, звіти про помилки й усі версії на GitHub\u00a0↗',
+      footerName: 'Minimalistic Radio · ліцензія MIT',
+      footerPrivacy: 'Приватність'
+    }
+  };
+
   // The first of the browser's languages the page has, by primary subtag; otherwise English.
   function pickLanguage() {
     var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
@@ -425,23 +1398,25 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-
   }
 
   var language = pickLanguage();
-  var text = TEXTS[language];
+  var text = Object.assign({}, TEXTS.en, LANDING_TEXTS.en, TEXTS[language], LANDING_TEXTS[language]);
   var phone = isPhone();
 
-  var stationCard = document.getElementById('station');
+  var shareView = document.getElementById('share-view');
+  var landing = document.getElementById('top');
   var logoBox = document.getElementById('logo');
   var nameHeading = document.getElementById('name');
   var openLink = document.getElementById('open');
   var copyButton = document.getElementById('copy');
   var copyLabel = document.getElementById('copy-label');
-  var getSection = document.getElementById('get');
-  var getTitle = document.getElementById('get-title');
   var afterNote = document.getElementById('after');
   var status = document.getElementById('status');
 
   document.documentElement.lang = language;
   Array.prototype.forEach.call(document.querySelectorAll('[data-text]'), function (element) {
     element.textContent = text[element.getAttribute('data-text')];
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-label]'), function (element) {
+    element.setAttribute('aria-label', text[element.getAttribute('data-label')]);
   });
   document.getElementById('desktop').hidden = phone;
   document.getElementById('phone').hidden = !phone;
@@ -518,24 +1493,351 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--text); outline-
     }
   });
 
+  // ---- The landing page ----
+
+  // All the app's pictures come from the main repository, so they are always the current ones. They are 2x
+  // pictures: a "2x" srcset shows them at half their pixel size, one picture pixel per screen pixel on retina.
+  var ASSET_BASE = 'https://raw.githubusercontent.com/zal3wa/minimalistic-radio/main/docs/screenshots/';
+  var RELEASES_API = 'https://api.github.com/repos/zal3wa/minimalistic-radio/releases?per_page=100&page=';
+  var OS_NAMES = { windows: 'Windows', macos: 'macOS', linux: 'Linux' };
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // The visitor's system picks the bar, the demo and the pictures. Phones get Windows, as in the canvas.
+  function detectOs() {
+    if (phone) return 'windows';
+    var data = navigator.userAgentData;
+    var platform = data && data.platform ? data.platform : '';
+    var agent = navigator.userAgent || '';
+    if (platform ? /^mac/i.test(platform) : /Macintosh|Mac OS X/.test(agent)) return 'macos';
+    if (platform ? /linux|chrome ?os|cros|bsd/i.test(platform) : /Linux|X11|CrOS|BSD/.test(agent)) return 'linux';
+    return 'windows';
+  }
+
+  // The stations in the strip; each one is a share link, opened by this same page.
+  var STRIP = [
+    ['Radio Nowy Świat', 'https://stream.nowyswiat.online/mp3', 'https://dabplus.live/logo/ea4141ebdcca43ef81e6f8e7351b4309.png'],
+    ['Radio 357', 'https://n-11-21.dcs.redcdn.pl/sc/o2/radio357/live/radio357_pr.livx?preroll=0', 'https://radio357.pl/wp-content/uploads/2022/04/c5399c0d-1b8e-43d5-b23b-e5cef1857856.png'],
+    ['Antyradio Hard', 'https://an05.cdn.eurozet.pl/ANTHAR.mp3', 'https://gfx-player.radiozet.pl/var/player/storage/images/player-antyradio/kanaly-muzyczne/antyradio-hard/710016-10-pol-PL/Antyradio-Hard_size-228x228.jpg'],
+    ['102.7 KIIS FM Los Angeles', 'http://stream.revma.ihrhls.com/zc185', 'https://i.iheart.com/v3/re/assets.brands/61d4a04fc786e58c38995162'],
+    ['RMF Classic Rock', 'https://rs201-krk.rmfstream.pl/rmf_classic_rock', 'https://www.rmfon.pl/assets/images/favicon/apple-touch-icon.png'],
+    ['ROCK FM Classic Rock', 'https://audiotainment-sw.streamabc.net/atsw-classicrock-mp3-128-2538548?', 'http://www.my-radios.com/favicon.ico'],
+    ['Bassdrive', 'https://ice.bassdrive.net/stream', 'https://www.bassdrive.com/images/logo.png']
+  ];
+  var WAVES = 'M8.6 8.6a4.8 4.8 0 0 0 0 6.8M15.4 8.6a4.8 4.8 0 0 1 0 6.8M5.8 5.8a8.8 8.8 0 0 0 0 12.4M18.2 5.8a8.8 8.8 0 0 1 0 12.4';
+
+  // The demo: start at the icon, History, the first song's ⋯, hover Search on Spotify, click elsewhere,
+  // Statistics, back to Song history, back to the stations, back to the icon; 20 s round. The points come from
+  // docs/screenshots/demo/<os>-hotspots.json (pixels of the 2x pictures); these are the canvas's values, used
+  // when that file can't be read. Points are where the pointer's tip goes, in the panel's own CSS pixels.
+  var DEMO_FALLBACK = {
+    windows: { size: [432, 622], history: [164, 39], songMenu: [387, 107], spotify: [297, 179], elsewhere: [221, 521], statistics: [358, 39], back: [39, 39] },
+    macos: { size: [412, 602], history: [154, 22], songMenu: [386, 76], spotify: [330, 122], elsewhere: [201, 481], statistics: [348, 22], back: [21, 22] },
+    linux: { size: [402, 592], history: [161, 31], songMenu: [354, 96], spotify: [291, 178], elsewhere: [201, 501], statistics: [297, 31], back: [27, 31] }
+  };
+
+  // The three hotspot files differ a little: frame names with or without "<os>-demo-" and "-light.png",
+  // "song-menu" or "more", "search-on-spotify" or "spotify", the size at the top or per frame.
+  function readHotspots(data) {
+    if (!data || typeof data !== 'object' || !data.frames || typeof data.frames !== 'object') return null;
+    var scale = typeof data.scale === 'number' && data.scale > 0 ? data.scale : 2;
+    var size = Array.isArray(data.size) ? data.size : null;
+    var frames = {};
+    Object.keys(data.frames).forEach(function (key) {
+      var frame = data.frames[key];
+      if (!frame || typeof frame !== 'object') return;
+      var name = key.replace(/\.png$/i, '').replace(/-(light|dark)$/i, '').replace(/^.*-demo-/, '');
+      if (!frames[name]) frames[name] = frame;
+      if (!size && frame.width > 0 && frame.height > 0) size = [frame.width, frame.height];
+    });
+    function point(frame, names) {
+      var spots = frames[frame];
+      if (!spots) return null;
+      for (var i = 0; i < names.length; i++) {
+        var p = spots[names[i]];
+        if (Array.isArray(p) && p.length === 2 && isFinite(p[0]) && isFinite(p[1])) return [p[0] / scale, p[1] / scale];
+      }
+      return null;
+    }
+    var result = {
+      history: point('stations', ['history']),
+      songMenu: point('history', ['song-menu', 'more']),
+      statistics: point('history', ['statistics']),
+      spotify: point('history-menu', ['search-on-spotify', 'spotify']),
+      back: point('statistics', ['back'])
+    };
+    for (var key in result) if (!result[key]) return null;
+    if (size && size[0] > 0 && size[1] > 0) result.size = [size[0] / scale, size[1] / scale];
+    return result;
+  }
+
+  // The pointer's keyframes, with the canvas's timing. The path's tip is at (1, 1).
+  function cursorKeyframes(start, p) {
+    function at(point, scale) {
+      return '{transform:translate(' + (point[0] - 1).toFixed(1) + 'px,' + (point[1] - 1).toFixed(1) + 'px) scale(' + scale + ')}';
+    }
+    var steps = [
+      ['0%,3%', start, 1], ['16%,17%', p.history, 1], ['18%', p.history, 0.85], ['19%', p.history, 1],
+      ['27%,28%', p.songMenu, 1], ['29%', p.songMenu, 0.85], ['30%', p.songMenu, 1],
+      ['35%,43%', p.spotify, 1], ['46%', p.elsewhere, 1], ['46.5%', p.elsewhere, 0.85], ['47.5%', p.elsewhere, 1],
+      ['54%,55%', p.statistics, 1], ['56%', p.statistics, 0.85], ['57%,66%', p.statistics, 1],
+      ['69%,70%', p.back, 1], ['71%', p.back, 0.85], ['72%,76%', p.back, 1], ['77%', p.back, 0.85], ['78%', p.back, 1],
+      ['90%,100%', start, 1]
+    ];
+    return '@keyframes mr-cursor{' + steps.map(function (step) { return step[0] + at(step[1], step[2]); }).join('') + '}';
+  }
+
+  function setPicture(img, name) {
+    var source = img.parentNode.querySelector('source');
+    if (source) source.srcset = ASSET_BASE + name + '-dark.png 2x';
+    img.srcset = ASSET_BASE + name + '-light.png 2x';
+  }
+
+  function format(template, value) {
+    return template.split('{0}').join(value);
+  }
+
+  var os = 'windows';
+  var landingReady = false;
+  var demo = document.getElementById('demo');
+  var demoBox = document.getElementById('demo-box');
+  var stage = document.getElementById('stage');
+  var cursor = document.getElementById('cursor');
+  var cursorStyle = document.createElement('style');
+  var spots = null;
+  var demoSize = null;
+
+  // Size the demo to its column (the canvas's phone layout scales it down), then put the pointer's start on the
+  // bar's radio icon, wherever the layout has put it.
+  function layoutDemo() {
+    if (!landingReady || landing.hidden) return;
+    var w = demoSize[0];
+    var h = demoSize[1];
+    var k = Math.min(1, stage.clientWidth / w) || 1;
+    demo.style.width = Math.round(w * k) + 'px';
+    demo.style.height = Math.round(h * k) + 'px';
+    demoBox.style.width = w + 'px';
+    demoBox.style.height = h + 'px';
+    demoBox.style.transform = k < 1 ? 'scale(' + k + ')' : '';
+    var icon = landing.querySelector('.l-bar-' + os + ' .l-bar-icon');
+    var box = demoBox.getBoundingClientRect();
+    var mark = icon.getBoundingClientRect();
+    var start = [(mark.left + mark.width / 2 - box.left) / k, (mark.top + mark.height / 2 - box.top) / k];
+    var points = Object.assign({}, spots);
+    points.elsewhere = [Math.min(points.elsewhere[0], w - 10), Math.min(points.elsewhere[1], h - 10)];
+    cursorStyle.textContent = cursorKeyframes(start, points);
+    cursor.style.transform = 'translate(' + (start[0] - 1).toFixed(1) + 'px,' + (start[1] - 1).toFixed(1) + 'px)';
+    cursor.style.visibility = 'visible';
+  }
+
+  function setUpDemo() {
+    var frames = Array.prototype.slice.call(demoBox.querySelectorAll('img.l-frame'));
+    frames.forEach(function (img) { setPicture(img, 'demo/' + os + '-' + img.getAttribute('data-frame')); });
+    demoBox.setAttribute('aria-label', format(text.demoLabel, OS_NAMES[os]));
+    spots = DEMO_FALLBACK[os];
+    demoSize = spots.size;
+    document.head.appendChild(cursorStyle);
+
+    var hotspots = fetch(ASSET_BASE + 'demo/' + os + '-hotspots.json', { credentials: 'omit', referrerPolicy: 'no-referrer' })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        var read = readHotspots(data);
+        if (read) spots = Object.assign({}, DEMO_FALLBACK[os], read);
+      }, function () {});
+    var pictures = Promise.all(frames.map(function (img) { return img.decode(); })).then(function () {
+      // The picture decides the panel's size: half its pixels.
+      if (frames[0].naturalWidth > 0) demoSize = [frames[0].naturalWidth, frames[0].naturalHeight];
+      return true;
+    }, function () { return false; });
+    layoutDemo();
+    Promise.all([pictures, hotspots]).then(function (results) {
+      if (spots.size && !(frames[0].naturalWidth > 0)) demoSize = spots.size;
+      layoutDemo();
+      // Frames and pointer start together, only once every picture is there.
+      if (results[0] && !reduceMotion) demo.classList.add('run');
+    });
+  }
+
+  function setUpStrip() {
+    var track = document.getElementById('track');
+    // Four copies, so the strip loops by moving half its width; only the first copy is read out and focusable.
+    for (var copy = 0; copy < 4; copy++) {
+      STRIP.forEach(function (entry) {
+        var station = { name: entry[0], stream: entry[1], logo: entry[2] };
+        var params = new URLSearchParams();
+        params.set('n', station.name);
+        params.set('u', station.stream);
+        if (station.logo) params.set('l', station.logo);
+        var link = document.createElement('a');
+        link.className = 'l-station';
+        link.href = '#' + params.toString();
+        link.title = station.name;
+        if (copy > 0) {
+          link.setAttribute('aria-hidden', 'true');
+          link.tabIndex = -1;
+        }
+        var badge = document.createElement('span');
+        badge.className = 'l-station-logo';
+        var image = document.createElement('img');
+        image.alt = '';
+        image.referrerPolicy = 'no-referrer';
+        image.decoding = 'async';
+        image.addEventListener('error', function () { badge.replaceChild(waves(), image); });
+        image.src = station.logo.replace(/^http:/i, 'https:');
+        badge.appendChild(image);
+        var name = document.createElement('span');
+        name.className = 'l-station-name';
+        name.textContent = station.name;
+        link.appendChild(badge);
+        link.appendChild(name);
+        track.appendChild(link);
+      });
+    }
+  }
+
+  function waves() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('width', '28');
+    svg.setAttribute('height', '28');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '1.8');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    var dot = document.createElementNS(ns, 'circle');
+    dot.setAttribute('cx', '12');
+    dot.setAttribute('cy', '12');
+    dot.setAttribute('r', '1.6');
+    dot.setAttribute('fill', 'currentColor');
+    var arcs = document.createElementNS(ns, 'path');
+    arcs.setAttribute('d', WAVES);
+    svg.appendChild(dot);
+    svg.appendChild(arcs);
+    return svg;
+  }
+
+  // The sum of every release file's downloads, from GitHub's API; nothing is shown if it can't be read.
+  function showDownloadCount() {
+    var total = 0;
+    function page(number) {
+      return fetch(RELEASES_API + number, { credentials: 'omit', referrerPolicy: 'no-referrer' })
+        .then(function (response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.json();
+        })
+        .then(function (releases) {
+          if (!Array.isArray(releases)) throw new Error('not a list');
+          releases.forEach(function (release) {
+            (release.assets || []).forEach(function (asset) { total += asset.download_count > 0 ? asset.download_count : 0; });
+          });
+          return releases.length === 100 && number < 20 ? page(number + 1) : total;
+        });
+    }
+    page(1).then(function (count) {
+      var forms = text.statDownloads;
+      var form = forms[new Intl.PluralRules(language).select(count)] || forms.other;
+      var parts = form.split('{0}');
+      var element = document.getElementById('downloads-count');
+      var number = document.createElement('b');
+      number.textContent = new Intl.NumberFormat(language).format(count);
+      element.textContent = '';
+      if (parts[0].trim()) element.appendChild(document.createTextNode(parts[0].trim() + ' '));
+      element.appendChild(number);
+      if (parts[1] && parts[1].trim()) element.appendChild(document.createTextNode(' ' + parts[1].trim()));
+      element.hidden = false;
+    }, function () {});
+  }
+
+  // Parallax where scroll-driven animations are missing: the same movement, worked out on scroll.
+  function setUpParallax() {
+    if (reduceMotion || (window.CSS && CSS.supports && CSS.supports('animation-timeline: view()'))) return;
+    var shots = Array.prototype.slice.call(landing.querySelectorAll('.l-shot'));
+    var offsets = shots.map(function () { return 0; });
+    var pending = false;
+    function update() {
+      pending = false;
+      if (landing.hidden) return;
+      var view = window.innerHeight;
+      var travel = parseFloat(getComputedStyle(landing).getPropertyValue('--travel')) || 0;
+      shots.forEach(function (shot, i) {
+        var rect = shot.getBoundingClientRect();
+        var top = rect.top - offsets[i];
+        var progress = (view - top) / (view + rect.height);
+        progress = Math.max(0, Math.min(1, (progress - 0.1) / 0.8));
+        offsets[i] = travel * progress;
+        shot.style.transform = 'translateY(' + offsets[i].toFixed(1) + 'px)';
+      });
+    }
+    function request() {
+      if (!pending) {
+        pending = true;
+        requestAnimationFrame(update);
+      }
+    }
+    window.addEventListener('scroll', request, { passive: true });
+    window.addEventListener('resize', request);
+    shots.forEach(function (shot) { shot.addEventListener('load', request); });
+    request();
+  }
+
+  function setUpLanding() {
+    landingReady = true;
+    os = detectOs();
+    landing.setAttribute('data-os', os);
+    document.getElementById('phone-note').hidden = !phone;
+    var HINTS = { windows: 'hintWindows', macos: 'hintMacos', linux: 'hintLinux' };
+    document.getElementById('hint').textContent = text[HINTS[os]];
+    var key = { windows: 'dlWindows', macos: 'dlMacos', linux: 'dlLinux' };
+    Array.prototype.forEach.call(landing.querySelectorAll('.l-dl'), function (button) {
+      var target = button.getAttribute('data-os');
+      var main = target === os && !phone;
+      button.classList.toggle('main', main);
+      button.querySelector('.l-dl-title').textContent = main ? text[key[target]] : OS_NAMES[target];
+    });
+    Array.prototype.forEach.call(landing.querySelectorAll('.l-cta-button'), function (button) {
+      button.classList.toggle('main', button.getAttribute('data-os') === os);
+    });
+    var shotNames = { search: 'search', statistics: 'statistics', shared: 'shared' };
+    Array.prototype.forEach.call(landing.querySelectorAll('img.l-shot'), function (img) {
+      var name = shotNames[img.getAttribute('data-shot')];
+      setPicture(img, os === 'windows' ? name : os + '-' + name);
+      img.alt = format(text[img.getAttribute('data-alt')], OS_NAMES[os]);
+    });
+    setUpDemo();
+    setUpStrip();
+    showDownloadCount();
+    setUpParallax();
+    var resizing = false;
+    window.addEventListener('resize', function () {
+      if (resizing) return;
+      resizing = true;
+      requestAnimationFrame(function () {
+        resizing = false;
+        layoutDemo();
+      });
+    });
+  }
+
   function render() {
     var station = parseStation(location.hash.slice(1));
+    var wasLanding = !landing.hidden;
     showCopied(false);
-    stationCard.hidden = !station;
-    getTitle.hidden = !station;
-    afterNote.hidden = !station;
-    getSection.classList.toggle('solo', !station);
+    shareView.hidden = !station;
+    landing.hidden = !!station;
     if (!station) {
       document.title = 'Minimalistic Radio';
-      nameHeading.textContent = '';
-      openLink.setAttribute('href', '#');
       showLogo(null);
+      if (!landingReady) setUpLanding();
+      else layoutDemo();
       return;
     }
     document.title = station.name + ' – Minimalistic Radio';
     nameHeading.textContent = station.name;
     openLink.setAttribute('href', appLink(station));
     showLogo(station.logo, station.name);
+    // From a station in the strip: the shared station starts at the top of the page.
+    if (wasLanding) window.scrollTo(0, 0);
   }
 
   window.addEventListener('hashchange', render);
